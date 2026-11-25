@@ -4,6 +4,7 @@ import type { GatewayKey, GatewayOverview } from '@/api/model-gateway'
 import { SectionCard } from '@/components/patterns'
 import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { Button } from '@/components/ui/button'
+import { formatCost } from '../../pricing'
 import { PREFIX, formatCompact, quotaPercent } from '../../utils'
 import { UsageBar } from '../usage-bar'
 
@@ -83,9 +84,14 @@ export function TopModels({
               {formatCompact(model.total_tokens)}
             </div>
             <div className="text-xs text-fg-subtle tabular-nums">
-              {t(`${PREFIX}.overview.requestsCount`, {
-                count: model.requests,
-              })}
+              {[
+                t(`${PREFIX}.overview.requestsCount`, {
+                  count: model.requests,
+                }),
+                model.spend ? formatCost(model.spend) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </div>
           </div>
         </li>
@@ -139,8 +145,15 @@ export function TopKeys({
                 <UsageBar percent={percent} label={quota} />
               ) : null}
             </div>
-            <div className="w-16 shrink-0 text-right text-sm text-fg tabular-nums">
-              {formatCompact(item.total_tokens)}
+            <div className="w-20 shrink-0 text-right">
+              <div className="text-sm text-fg tabular-nums">
+                {formatCompact(item.total_tokens)}
+              </div>
+              {item.spend ? (
+                <div className="text-xs text-fg-subtle tabular-nums">
+                  {formatCost(item.spend)}
+                </div>
+              ) : null}
             </div>
           </li>
         )

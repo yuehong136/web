@@ -15,6 +15,7 @@ export interface LogFilters {
   keyId: string | null
   model: string | null
   outcome: GatewayLogOutcome | null
+  statusCode: number | null
   endUser: string | null
   page: number
 }
@@ -27,6 +28,11 @@ const readRange = (value: string | null): GatewayWindow =>
 const readOutcome = (value: string | null): GatewayLogOutcome | null =>
   value === 'success' || value === 'error' ? value : null
 
+const readStatus = (value: string | null): number | null => {
+  const code = Number(value)
+  return Number.isInteger(code) && code >= 100 && code <= 599 ? code : null
+}
+
 export function readLogFilters(params: URLSearchParams): LogFilters {
   const page = Number(params.get(LOG_PARAMS.page))
   return {
@@ -34,6 +40,7 @@ export function readLogFilters(params: URLSearchParams): LogFilters {
     keyId: params.get(LOG_PARAMS.key) || null,
     model: params.get(LOG_PARAMS.model) || null,
     outcome: readOutcome(params.get(LOG_PARAMS.outcome)),
+    statusCode: readStatus(params.get(LOG_PARAMS.status)),
     endUser: params.get(LOG_PARAMS.endUser) || null,
     page: Number.isInteger(page) && page > 1 ? page : 1,
   }
@@ -55,6 +62,7 @@ export function logQueryOf(
     ...(filters.keyId ? { key_id: filters.keyId } : {}),
     ...(filters.model ? { model: filters.model } : {}),
     ...(filters.outcome ? { outcome: filters.outcome } : {}),
+    ...(filters.statusCode ? { status_code: filters.statusCode } : {}),
     ...(filters.endUser ? { end_user: filters.endUser } : {}),
   }
 }
@@ -88,6 +96,10 @@ export function useLogFilters() {
     if ('keyId' in patch) values[LOG_PARAMS.key] = patch.keyId ?? null
     if ('model' in patch) values[LOG_PARAMS.model] = patch.model ?? null
     if ('outcome' in patch) values[LOG_PARAMS.outcome] = patch.outcome ?? null
+    if ('statusCode' in patch)
+      values[LOG_PARAMS.status] = patch.statusCode
+        ? String(patch.statusCode)
+        : null
     if ('endUser' in patch) values[LOG_PARAMS.endUser] = patch.endUser ?? null
     write(values)
   }

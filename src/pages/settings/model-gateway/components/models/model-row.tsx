@@ -1,15 +1,18 @@
-import { MoreHorizontal } from 'lucide-react'
+import { Check, Copy, MoreHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { GatewayCatalogModel } from '@/api/model-gateway'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { useUpdateCatalogModel } from '@/hooks/use-model-gateway-request'
 import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { isCallable } from '../../catalog'
+import { contextSummary, priceSummary } from '../../pricing'
+import { widestPool } from '../../routing'
 import {
   PREFIX,
   capabilityLabel,
@@ -19,16 +22,22 @@ import {
   modelStateLabel,
 } from '../../utils'
 
-/** A note under the call name: who owns a shared name, or why it is off. */
+/** A note under the call name: why the model is off, or how it is routed. */
 function rowNote(
   t: ReturnType<typeof useTranslation>['t'],
   model: GatewayCatalogModel,
 ) {
   if (model.state === 'unavailable') return modelStateLabel(t, model)
-  if (!model.shares_name) return null
-  return model.names.includes(model.model_name)
-    ? t(`${PREFIX}.models.preferred`)
-    : t(`${PREFIX}.models.notPreferred`)
+  if (!model.pools?.length) return null
+  const weight = model.weight ?? 1
+  return [
+    model.order === null || model.order === undefined
+      ? t(`${PREFIX}.models.orderUnset`)
+      : t(`${PREFIX}.models.orderValue`, { value: model.order }),
+    weight === 1 ? null : t(`${PREFIX}.models.weightValue`, { value: weight }),
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 export function ModelRow({
@@ -40,9 +49,14 @@ export function ModelRow({
 }) {
   const { t } = useTranslation()
   const mutation = useUpdateCatalogModel()
+  const { copiedStates, copyWithFeedback } = useCopyFeedback()
+  const copied = Boolean(copiedStates.name)
   const callable = isCallable(model)
   const unavailable = model.state === 'unavailable'
   const note = rowNote(t, model)
+  const price = priceSummary(model.pricing)
+  const context = contextSummary(t, model)
+  const pool = widestPool(model)
 
   const toggle = async (enabled: boolean) => {
     try {
@@ -57,7 +71,7 @@ export function ModelRow({
   }
 
   return (
-    <TableRow className={cn(!callable && 'text-fg-subtle')}>
+    <TableRow className={cn('group', !callable && 'text-fg-subtle')}>
       <TableCell className="max-w-72 py-space-sm">
         <div className="flex flex-wrap items-center gap-space-xs">
           <span
@@ -68,9 +82,35 @@ export function ModelRow({
           >
             {model.call_name}
           </span>
-          {model.shares_name ? (
-            <Badge tone="warning" title={t(`${PREFIX}.models.sharesNameHint`)}>
-              {t(`${PREFIX}.models.sharesName`)}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className={cn(
+              'size-6 min-h-0 text-fg-subtle',
+              !copied &&
+                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100',
+            )}
+            aria-label={t(`${PREFIX}.models.settings.copyName`, {
+              name: model.call_name,
+            })}
+            onClick={() => void copyWithFeedback(model.call_name, 'name')}
+          >
+            {copied ? (
+              <Check className="size-icon-xs" aria-hidden="true" />
+            ) : (
+              <Copy className="size-icon-xs" aria-hidden="true" />
+            )}
+          </Button>
+          {pool ? (
+            <Badge
+              tone="info"
+              title={t(`${PREFIX}.models.pooledHint`, {
+                name: pool.name,
+                count: pool.deployments,
+              })}
+            >
+              {t(`${PREFIX}.models.pooled`, { count: pool.deployments })}
             </Badge>
           ) : null}
           {model.alias ? <Badge>{t(`${PREFIX}.models.alias`)}</Badge> : null}
@@ -88,6 +128,28 @@ export function ModelRow({
       </TableCell>
       <TableCell className="max-w-48 truncate font-mono text-xs text-fg-muted">
         <span title={model.model_name}>{model.model_name}</span>
+      </TableCell>
+      <TableCell className="text-sm whitespace-nowrap text-fg-muted">
+        {price ? (
+          <div
+            className="flex items-center gap-space-xs tabular-nums"
+            title={t(
+              model.pricing?.tiered
+                ? `${PREFIX}.models.priceHintTiered`
+                : `${PREFIX}.models.priceHint`,
+            )}
+          >
+            {price}
+            {model.pricing?.source === 'custom' ? (
+              <Badge>{t(`${PREFIX}.models.customPrice`)}</Badge>
+            ) : null}
+          </div>
+        ) : (
+          t(`${PREFIX}.common.empty`)
+        )}
+        {context ? (
+          <div className="text-xs text-fg-subtle">{context}</div>
+        ) : null}
       </TableCell>
       <TableCell className="text-sm text-fg-muted">
         {limitSummary(t, model) ?? t(`${PREFIX}.common.empty`)}

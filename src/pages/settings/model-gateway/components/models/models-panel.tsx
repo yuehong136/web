@@ -1,13 +1,28 @@
 import { useState } from 'react'
-import { Boxes, Search, SearchX } from 'lucide-react'
+import {
+  Boxes,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Search,
+  SearchX,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import type { GatewayCatalog, GatewayCatalogModel } from '@/api/model-gateway'
+import type {
+  GatewayCatalog,
+  GatewayCatalogModel,
+  GatewayModelState,
+} from '@/api/model-gateway'
 import { FilterChip, PageEmptyState } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { groupCatalog, isCallable, unsupportedProviders } from '../../catalog'
+import {
+  EXPAND_ALL_MAX_MODELS,
+  useCatalogExpansionStore,
+  useGroupExpansion,
+} from '../../expansion'
 import { PREFIX } from '../../utils'
 import { ConnectionCard } from './connection-card'
 import { ModelSettingsDialog } from './model-settings-dialog'
@@ -15,6 +30,7 @@ import { NewModelsDefault } from './new-models-default'
 import { UnsupportedProviderCard } from './unsupported-provider-card'
 
 type CapabilityFilter = 'all' | 'chat' | 'embedding'
+const STATES: GatewayModelState[] = ['callable', 'closed', 'unavailable']
 
 function matchesSearch(model: GatewayCatalogModel, query: string) {
   if (!query) return true
@@ -37,6 +53,7 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
   const [search, setSearch] = useState('')
   const [capability, setCapability] = useState<CapabilityFilter>('all')
   const [providers, setProviders] = useState<string[]>([])
+  const [states, setStates] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const editing = catalog.models.find((model) => model.model_id === editingId)
 
@@ -46,7 +63,8 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
     (model) =>
       matchesSearch(model, query) &&
       (capability === 'all' || model.model_types.includes(capability)) &&
-      (providers.length === 0 || providers.includes(model.provider)),
+      (providers.length === 0 || providers.includes(model.provider)) &&
+      (states.length === 0 || states.includes(model.state)),
   )
   const unsupported = unsupportedProviders(catalog)
   const counted = catalog.models.filter(
@@ -55,6 +73,19 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
   const providerOptions = [
     ...new Set(catalog.models.map((model) => model.provider)),
   ].map((provider) => ({ value: provider, label: provider }))
+  const connections = groups
+    .filter((group) => !group.unsupported)
+    .flatMap((group) => group.connections)
+  const connectionIds = connections.map((connection) => connection.instance_id)
+  // A long catalog opens collapsed; a search or a provider pick opens what
+  // it found without touching the cards the user opened or closed.
+  const expansion = useGroupExpansion({
+    chosen: useCatalogExpansionStore((state) => state.chosen),
+    onChoose: useCatalogExpansionStore((state) => state.choose),
+    defaultOpen: () => counted.length <= EXPAND_ALL_MAX_MODELS,
+    searchKey: [query, ...providers, ...states].filter(Boolean).join(' '),
+  })
+  const anyOpen = connectionIds.some(expansion.isOpen)
 
   if (catalog.models.length === 0)
     return (
@@ -116,6 +147,35 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
           }}
           onChange={setProviders}
         />
+        <FilterChip
+          filter={{
+            key: 'state',
+            label: t(`${PREFIX}.models.allStates`),
+            options: STATES.map((state) => ({
+              value: state,
+              label: t(`${PREFIX}.models.stateFilter.${state}`),
+            })),
+            value: states,
+            selection: 'single',
+          }}
+          onChange={setStates}
+        />
+        {connections.length > 1 ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            leftIcon={
+              anyOpen ? (
+                <ChevronsDownUp className="size-icon-sm" aria-hidden="true" />
+              ) : (
+                <ChevronsUpDown className="size-icon-sm" aria-hidden="true" />
+              )
+            }
+            onClick={() => expansion.setAll(connectionIds, !anyOpen)}
+          >
+            {t(`${PREFIX}.models.${anyOpen ? 'collapseAll' : 'expandAll'}`)}
+          </Button>
+        ) : null}
         <p className="ml-auto text-sm text-fg-subtle" aria-live="polite">
           {[
             t(`${PREFIX}.models.summary`, {
@@ -140,20 +200,20 @@ export function ModelsPanel({ catalog }: { catalog: GatewayCatalog }) {
           icon={<SearchX className="size-icon-lg" aria-hidden="true" />}
         />
       ) : null}
-      {groups
-        .filter((group) => !group.unsupported)
-        .flatMap((group) =>
-          group.connections.map((connection) => (
-            <ConnectionCard
-              key={connection.instance_id}
-              connection={connection}
-              allModels={catalog.models.filter(
-                (model) => model.instance_id === connection.instance_id,
-              )}
-              onEdit={(model) => setEditingId(model.model_id)}
-            />
-          )),
-        )}
+      {connections.map((connection) => (
+        <ConnectionCard
+          key={connection.instance_id}
+          connection={connection}
+          allModels={catalog.models.filter(
+            (model) => model.instance_id === connection.instance_id,
+          )}
+          open={expansion.isOpen(connection.instance_id)}
+          onOpenChange={(open) =>
+            expansion.setOpen(connection.instance_id, open)
+          }
+          onEdit={(model) => setEditingId(model.model_id)}
+        />
+      ))}
       {groups
         .filter((group) => group.unsupported)
         .map((group) => (

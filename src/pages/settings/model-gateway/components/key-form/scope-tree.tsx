@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { ChevronRight, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { GatewayCatalog, GatewayCatalogModel } from '@/api/model-gateway'
 import { ProviderLogo } from '@/components/patterns/provider-logo'
@@ -18,6 +18,7 @@ import {
   type ConnectionGroup,
   type KeyScope,
 } from '../../catalog'
+import { EXPAND_ALL_MAX_MODELS, useGroupExpansion } from '../../expansion'
 import { PREFIX, capabilityLabel, modelStateLabel } from '../../utils'
 
 type Capability = 'all' | 'chat' | 'embedding'
@@ -32,6 +33,8 @@ interface ScopeTreeProps {
 /**
  * Connections with a tri-state checkbox (checked: the whole connection,
  * including models opened later; mixed: some models) and their models.
+ * In a long catalog only the connections with single models picked start
+ * open; a search opens the ones it matches.
  */
 export function ScopeTree({
   catalog,
@@ -42,7 +45,23 @@ export function ScopeTree({
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [capability, setCapability] = useState<Capability>('all')
+  const [chosen, setChosen] = useState<Record<string, boolean>>({})
   const query = search.trim().toLowerCase()
+  const expansion = useGroupExpansion({
+    chosen,
+    onChoose: (ids, open) =>
+      setChosen((current) => ({
+        ...current,
+        ...Object.fromEntries(ids.map((id) => [id, open])),
+      })),
+    defaultOpen: (id) =>
+      catalog.models.length <= EXPAND_ALL_MAX_MODELS ||
+      catalog.models.some(
+        (model) =>
+          model.instance_id === id && scope.modelIds.includes(model.model_id),
+      ),
+    searchKey: query,
+  })
   const groups = groupCatalog(
     catalog,
     (model) =>
@@ -101,6 +120,10 @@ export function ScopeTree({
                 )}
                 scope={scope}
                 disabled={disabled}
+                expanded={expansion.isOpen(connection.instance_id)}
+                onOpenChange={(open) =>
+                  expansion.setOpen(connection.instance_id, open)
+                }
                 onChange={onChange}
               />
             )),
@@ -116,12 +139,16 @@ function ConnectionNode({
   allModels,
   scope,
   disabled,
+  expanded,
+  onOpenChange,
   onChange,
 }: {
   connection: ConnectionGroup
   allModels: GatewayCatalogModel[]
   scope: KeyScope
   disabled?: boolean
+  expanded: boolean
+  onOpenChange: (open: boolean) => void
   onChange: (scope: KeyScope) => void
 }) {
   const { t } = useTranslation()
@@ -144,10 +171,24 @@ function ConnectionNode({
           aria-label={t(`${PREFIX}.keyForm.connectionLabel`, { name })}
           onCheckedChange={() => onChange(toggleConnection(scope, whole))}
         />
-        <ProviderLogo provider={connection.provider} size="sm" />
-        <span className="min-w-0 truncate text-sm font-medium text-fg">
-          {name}
-        </span>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          className="flex min-w-0 flex-1 items-center gap-space-sm rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
+          onClick={() => onOpenChange(!expanded)}
+        >
+          <ChevronRight
+            className={cn(
+              'size-icon-sm shrink-0 text-fg-muted transition-transform motion-reduce:transition-none',
+              expanded && 'rotate-90',
+            )}
+            aria-hidden="true"
+          />
+          <ProviderLogo provider={connection.provider} size="sm" />
+          <span className="min-w-0 truncate text-sm font-medium text-fg">
+            {name}
+          </span>
+        </button>
         {state === 'checked' ? (
           <Badge identity={6}>{t(`${PREFIX}.keyForm.wholeConnection`)}</Badge>
         ) : null}
@@ -160,7 +201,7 @@ function ConnectionNode({
               })}
         </span>
       </div>
-      <ul>
+      <ul hidden={!expanded}>
         {connection.models.map((model) => {
           const checked = modelChecked(scope, model)
           const reason = modelStateLabel(t, model)

@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GatewayOverview } from '@/api/model-gateway'
 import { SectionCard } from '@/components/patterns'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { getCurrentLanguage } from '@/locales/i18n'
-import { PREFIX, formatCount } from '../../utils'
+import { formatCost } from '../../pricing'
+import { PREFIX, formatCompact, formatCount } from '../../utils'
 
 const MAX_LABELS = 8
+type Metric = 'requests' | 'tokens' | 'spend'
 
 /** Day buckets are UTC days; hour buckets read best in local time. */
 function bucketLabel(start: string, bucket: GatewayOverview['bucket']) {
@@ -23,43 +27,110 @@ function bucketLabel(start: string, bucket: GatewayOverview['bucket']) {
 
 /**
  * Requests per bucket as stacked bars: failed on top of succeeded, both from
- * one zero baseline. Each bar names its numbers on hover; a hidden table
- * carries the same figures for screen readers.
+ * one zero baseline, or the tokens of each bucket. Each bar names its
+ * numbers on hover; a hidden table carries the same figures for screen
+ * readers.
  */
 export function RequestsChart({ overview }: { overview: GatewayOverview }) {
   const { t } = useTranslation()
   const { series, bucket } = overview
-  const peak = Math.max(0, ...series.map((point) => point.requests))
+  // Servers before the token series send requests only.
+  const hasTokens = series.some((point) => point.total_tokens !== undefined)
+  const [picked, setPicked] = useState<Metric>('requests')
+  const hasSpend = series.some((point) => point.spend !== undefined)
+  const metric: Metric =
+    (picked === 'tokens' && hasTokens) || (picked === 'spend' && hasSpend)
+      ? picked
+      : 'requests'
+  const valueOf = (point: (typeof series)[number]) =>
+    metric === 'tokens'
+      ? (point.total_tokens ?? 0)
+      : metric === 'spend'
+        ? (point.spend ?? 0)
+        : point.requests
+  const peak = Math.max(0, ...series.map(valueOf))
   const step = Math.max(1, Math.ceil(series.length / MAX_LABELS))
   const rows = series.map((point) => ({
     ...point,
     label: bucketLabel(point.start, bucket),
-    detail: t(`${PREFIX}.overview.chartBar`, {
-      time: bucketLabel(point.start, bucket),
-      requests: formatCount(point.requests),
-      errors: formatCount(point.errors),
-    }),
+    value: valueOf(point),
+    detail:
+      metric === 'tokens'
+        ? t(`${PREFIX}.overview.chartBarTokens`, {
+            time: bucketLabel(point.start, bucket),
+            tokens: formatCount(point.total_tokens ?? 0),
+          })
+        : metric === 'spend'
+          ? t(`${PREFIX}.overview.chartBarSpend`, {
+              time: bucketLabel(point.start, bucket),
+              value: formatCost(point.spend ?? 0),
+            })
+          : t(`${PREFIX}.overview.chartBar`, {
+              time: bucketLabel(point.start, bucket),
+              requests: formatCount(point.requests),
+              errors: formatCount(point.errors),
+            }),
   }))
   return (
     <SectionCard
       padding="default"
-      title={t(`${PREFIX}.overview.chartTitle.${bucket}`)}
+      title={t(
+        metric === 'tokens'
+          ? `${PREFIX}.overview.chartTitleTokens.${bucket}`
+          : metric === 'spend'
+            ? `${PREFIX}.overview.chartTitleSpend.${bucket}`
+            : `${PREFIX}.overview.chartTitle.${bucket}`,
+      )}
       actions={
-        <div className="flex items-center gap-space-md text-xs text-fg-muted">
-          <span className="inline-flex items-center gap-space-xs">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-radius-sm bg-accent-solid"
+        <div className="flex flex-wrap items-center justify-end gap-space-md text-xs text-fg-muted">
+          {metric === 'requests' ? (
+            <>
+              <span className="inline-flex items-center gap-space-xs">
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-radius-sm bg-accent-solid"
+                />
+                {t(`${PREFIX}.overview.chartSuccess`)}
+              </span>
+              <span className="inline-flex items-center gap-space-xs">
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-radius-sm bg-warning-fg"
+                />
+                {t(`${PREFIX}.overview.chartFailed`)}
+              </span>
+            </>
+          ) : (
+            <span className="tabular-nums">
+              {t(`${PREFIX}.overview.chartPeak`, {
+                value:
+                  metric === 'spend' ? formatCost(peak) : formatCompact(peak),
+              })}
+            </span>
+          )}
+          {hasTokens ? (
+            <SegmentedControl
+              size="sm"
+              aria-label={t(`${PREFIX}.overview.chartMetric`)}
+              value={metric}
+              onValueChange={setPicked}
+              options={[
+                {
+                  value: 'requests',
+                  label: t(`${PREFIX}.overview.requests`),
+                },
+                { value: 'tokens', label: t(`${PREFIX}.overview.tokens`) },
+                ...(hasSpend
+                  ? [
+                      {
+                        value: 'spend' as const,
+                        label: t(`${PREFIX}.overview.spend`),
+                      },
+                    ]
+                  : []),
+              ]}
             />
-            {t(`${PREFIX}.overview.chartSuccess`)}
-          </span>
-          <span className="inline-flex items-center gap-space-xs">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-radius-sm bg-warning-fg"
-            />
-            {t(`${PREFIX}.overview.chartFailed`)}
-          </span>
+          ) : null}
         </div>
       }
     >
@@ -82,23 +153,24 @@ export function RequestsChart({ overview }: { overview: GatewayOverview }) {
             className="flex h-36 items-end gap-0.5 border-b border-viz-axis"
           >
             {rows.map((row) => {
-              const ok = Math.max(0, row.requests - row.errors)
+              const errors = metric === 'requests' ? row.errors : 0
+              const ok = Math.max(0, row.value - errors)
               return (
                 <div
                   key={row.start}
                   title={row.detail}
                   className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-0.5 rounded-t-radius-sm hover:bg-fill-hover"
                 >
-                  {row.errors > 0 ? (
+                  {errors > 0 ? (
                     <div
                       className="min-h-0.5 w-full max-w-12 rounded-t-radius-sm bg-warning-fg"
-                      style={{ height: `${(row.errors / peak) * 100}%` }}
+                      style={{ height: `${(errors / peak) * 100}%` }}
                     />
                   ) : null}
                   {ok > 0 ? (
                     <div
                       className={
-                        row.errors > 0
+                        errors > 0
                           ? 'w-full max-w-12 bg-accent-solid'
                           : 'w-full max-w-12 rounded-t-radius-sm bg-accent-solid'
                       }

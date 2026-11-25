@@ -38,6 +38,22 @@ export interface GatewayRateLimits {
   max_parallel_requests: number | null
 }
 
+/** US dollars per token, under LiteLLM's field names. */
+export interface GatewayPriceRates {
+  input_cost_per_token: number
+  output_cost_per_token: number
+  /** `null` charges cached prompt tokens like any other prompt token. */
+  cache_read_input_token_cost: number | null
+}
+
+/** The price calls of a model are charged at. */
+export interface GatewayPricing extends GatewayPriceRates {
+  /** The operator's own price, or LiteLLM's cost map. */
+  source: 'custom' | 'litellm' | (string & {})
+  /** Larger prompts are charged at other rates than the ones shown. */
+  tiered: boolean
+}
+
 /** A registered model as the gateway sees it; there is no publish step. */
 export interface GatewayCatalogModel extends GatewayRateLimits {
   model_id: string
@@ -60,8 +76,38 @@ export interface GatewayCatalogModel extends GatewayRateLimits {
   preferred: boolean
   /** Another registered model has the same `model_name`. */
   shares_name: boolean
+  /** Share of traffic among deployments of one order; absent on older servers. */
+  weight?: number
+  /** The lowest order is tried first; `null` comes after every ordered model. */
+  order?: number | null
+  /** Names this model serves together with other callable models. */
+  pools?: GatewayPool[]
   description: string | null
   requests_7d: number
+  /** `null` when nobody priced the model; absent on older servers. */
+  pricing?: GatewayPricing | null
+  /** The operator's price, when one is set. */
+  custom_pricing?: GatewayPriceRates | null
+  max_input_tokens?: number | null
+  max_output_tokens?: number | null
+}
+
+/** A name several callable models serve; each is a deployment of it. */
+export interface GatewayPool {
+  name: string
+  deployments: number
+}
+
+/** One upstream call of a request that made more than one. */
+export interface GatewayAttempt {
+  model_id: string
+  model_name: string
+  provider: string
+  /** The connection the deployment is registered under. */
+  instance_name?: string
+  status_code: number
+  error_code: string | null
+  duration_ms: number
 }
 
 /** A provider connection (model instance), with or without models. */
@@ -82,6 +128,13 @@ export interface GatewayCatalogModelUpdate extends Partial<GatewayRateLimits> {
   alias?: string | null
   preferred?: boolean
   description?: string | null
+  /** LiteLLM's `weight` and `order`; `null` returns to the default. */
+  weight?: number | null
+  order?: number | null
+  /** Exact decimal strings; `null` returns the model to LiteLLM's price. */
+  input_cost_per_token?: string | null
+  output_cost_per_token?: string | null
+  cache_read_input_token_cost?: string | null
 }
 
 export interface GatewayKey extends GatewayRateLimits {
@@ -159,6 +212,12 @@ export interface GatewayLog {
   prompt_tokens: number | null
   completion_tokens: number | null
   total_tokens: number | null
+  /** Prompt tokens served from the upstream's cache. */
+  cache_read_input_tokens?: number | null
+  /** US dollars; `null` when the model has no price or the usage is unknown. */
+  cost?: number | null
+  /** Every upstream call, in order, when the request made more than one. */
+  attempts?: GatewayAttempt[] | null
   usage_source: 'reported' | 'estimated' | 'unavailable' | (string & {})
   started_at: string | null
   first_token_ms: number | null
@@ -181,6 +240,8 @@ export interface GatewayLogQuery {
   model?: string
   end_user?: string
   outcome?: GatewayLogOutcome
+  /** An exact HTTP status, e.g. 429. */
+  status_code?: number
   start?: string
   end?: string
 }
@@ -222,6 +283,8 @@ export interface GatewayOverviewTotals {
   completion_tokens: number
   total_tokens: number
   usage_unknown: number
+  /** US dollars; calls of unpriced models add nothing. Absent on older servers. */
+  spend?: number
   /** Median first-token latency of streamed calls; `null` when none. */
   first_token_p50_ms: number | null
 }
@@ -230,6 +293,9 @@ export interface GatewayOverviewBucket {
   start: string
   requests: number
   errors: number
+  /** Tokens of the calls with known usage; absent on older servers. */
+  total_tokens?: number
+  spend?: number
 }
 
 export interface GatewayOverview {
@@ -254,12 +320,14 @@ export interface GatewayOverview {
     provider: string
     requests: number
     total_tokens: number
+    spend?: number
   }>
   top_keys: Array<{
     key_id: string
     key_name: string
     requests: number
     total_tokens: number
+    spend?: number
   }>
   recent_errors: GatewayLog[]
 }

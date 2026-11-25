@@ -12,6 +12,7 @@ export const LOG_PARAMS = {
   key: 'key',
   model: 'model',
   outcome: 'outcome',
+  status: 'status',
   endUser: 'user',
   page: 'page',
 } as const

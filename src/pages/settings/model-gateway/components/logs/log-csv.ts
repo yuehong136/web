@@ -27,6 +27,8 @@ const COLUMNS: Array<
   ['promptTokens', (log) => log.prompt_tokens],
   ['completionTokens', (log) => log.completion_tokens],
   ['totalTokens', (log) => log.total_tokens],
+  ['cachedTokens', (log) => log.cache_read_input_tokens ?? null],
+  ['costUsd', (log) => log.cost ?? null],
   ['durationMs', (log) => log.duration_ms],
   ['firstTokenMs', (log) => log.first_token_ms],
   ['endUser', (log) => log.end_user],

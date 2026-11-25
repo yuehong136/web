@@ -27,6 +27,20 @@ import {
   parseLimits,
   type LimitDraft,
 } from '../../form-model'
+import {
+  formatRate,
+  parsePriceDraft,
+  priceDraftOf,
+  samePriceDraft,
+  type PriceDraft,
+} from '../../pricing'
+import {
+  MAX_ORDER,
+  MAX_WEIGHT,
+  parseRoutingDraft,
+  routingDraftOf,
+  type RoutingDraft,
+} from '../../routing'
 import { PREFIX, gatewayErrorKey } from '../../utils'
 import { CopyField } from '../copy-field'
 import { LimitFields } from '../limit-fields'
@@ -34,8 +48,8 @@ import { LimitFields } from '../limit-fields'
 const ERROR_ID = 'gateway-model-settings-error'
 
 /**
- * Alias, preference among same-named models, description and model-level
- * limits of one catalog model. Only changed fields are sent.
+ * Alias, routing among the models of a shared name, description, limits and
+ * price of one catalog model. Only changed fields are sent.
  */
 export function ModelSettingsDialog({
   model,
@@ -50,6 +64,13 @@ export function ModelSettingsDialog({
   const [preferred, setPreferred] = useState(model.preferred)
   const [description, setDescription] = useState(model.description ?? '')
   const [limits, setLimits] = useState<LimitDraft>(() => limitDraftOf(model))
+  const [price, setPrice] = useState<PriceDraft>(() => priceDraftOf(model))
+  const [routing, setRouting] = useState<RoutingDraft>(() =>
+    routingDraftOf(model),
+  )
+  const pools = model.pools ?? []
+  // What LiteLLM lists for the model, shown where no own price is typed.
+  const listed = model.pricing?.source === 'litellm' ? model.pricing : null
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const pending = mutation.isPending
 
@@ -64,8 +85,15 @@ export function ModelSettingsDialog({
       return setErrorKey(`${PREFIX}.errors.invalidAlias`)
     const parsed = parseLimits(limits)
     if (!parsed) return setErrorKey(`${PREFIX}.errors.invalidLimit`)
+    const parsedPrice = parsePriceDraft(price)
+    if (!parsedPrice) return setErrorKey(`${PREFIX}.errors.invalidPrice`)
+    const parsedRouting = parseRoutingDraft(routing, model)
+    if (!parsedRouting) return setErrorKey(`${PREFIX}.errors.invalidRouting`)
     setErrorKey(null)
-    const input: GatewayCatalogModelUpdate = {}
+    const input: GatewayCatalogModelUpdate = {
+      ...parsedRouting,
+      ...(samePriceDraft(price, priceDraftOf(model)) ? {} : parsedPrice),
+    }
     if (nextAlias !== model.alias) input.alias = nextAlias
     if (model.shares_name && preferred !== model.preferred)
       input.preferred = preferred
@@ -148,6 +176,65 @@ export function ModelSettingsDialog({
               </div>
             ) : null}
 
+            {model.weight === undefined ? null : (
+              <fieldset className="space-y-space-xs">
+                <legend className="text-sm font-medium text-fg">
+                  {t(`${PREFIX}.models.settings.routingTitle`)}
+                </legend>
+                <p className="text-xs text-fg-subtle">
+                  {t(`${PREFIX}.models.settings.routingHint`)}
+                </p>
+                {pools.length > 0 ? (
+                  <ul className="space-y-space-2xs text-xs text-fg-muted">
+                    {pools.map((pool) => (
+                      <li key={pool.name}>
+                        {t(`${PREFIX}.models.settings.routingPool`, {
+                          name: pool.name,
+                          count: pool.deployments,
+                        })}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="grid gap-space-sm sm:grid-cols-2">
+                  {(
+                    [
+                      ['order', MAX_ORDER],
+                      ['weight', MAX_WEIGHT],
+                    ] as const
+                  ).map(([field, max]) => (
+                    <div key={field} className="space-y-space-2xs">
+                      <Label
+                        htmlFor={`gateway-model-routing-${field}`}
+                        className="text-xs font-normal text-fg-muted"
+                      >
+                        {t(`${PREFIX}.models.settings.routing.${field}`)}
+                      </Label>
+                      <Input
+                        id={`gateway-model-routing-${field}`}
+                        inputMode="numeric"
+                        inputSize="sm"
+                        className="tabular-nums"
+                        value={routing[field]}
+                        disabled={pending}
+                        placeholder={t(
+                          `${PREFIX}.models.settings.routing.${field}Placeholder`,
+                          { max },
+                        )}
+                        onChange={(event) => {
+                          setRouting({
+                            ...routing,
+                            [field]: event.target.value,
+                          })
+                          setErrorKey(null)
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
             <section className="space-y-space-xs">
               <h3 className="text-sm font-medium text-fg">
                 {t(`${PREFIX}.models.settings.names`)}
@@ -197,6 +284,56 @@ export function ModelSettingsDialog({
                 }}
               />
             </fieldset>
+
+            {model.pricing === undefined ? null : (
+              <fieldset className="space-y-space-xs">
+                <legend className="text-sm font-medium text-fg">
+                  {t(`${PREFIX}.models.settings.priceTitle`)}
+                </legend>
+                <p className="text-xs text-fg-subtle">
+                  {t(
+                    listed
+                      ? `${PREFIX}.models.settings.priceHintListed`
+                      : `${PREFIX}.models.settings.priceHint`,
+                  )}
+                </p>
+                <div className="grid gap-space-sm sm:grid-cols-3">
+                  {(
+                    [
+                      ['input', listed?.input_cost_per_token],
+                      ['output', listed?.output_cost_per_token],
+                      ['cacheRead', listed?.cache_read_input_token_cost],
+                    ] as const
+                  ).map(([field, listedRate]) => (
+                    <div key={field} className="space-y-space-2xs">
+                      <Label
+                        htmlFor={`gateway-model-price-${field}`}
+                        className="text-xs font-normal text-fg-muted"
+                      >
+                        {t(`${PREFIX}.models.settings.price.${field}`)}
+                      </Label>
+                      <Input
+                        id={`gateway-model-price-${field}`}
+                        inputMode="decimal"
+                        inputSize="sm"
+                        className="tabular-nums"
+                        value={price[field]}
+                        disabled={pending}
+                        placeholder={
+                          listedRate === null || listedRate === undefined
+                            ? t(`${PREFIX}.models.settings.priceUnset`)
+                            : formatRate(listedRate)
+                        }
+                        onChange={(event) => {
+                          setPrice({ ...price, [field]: event.target.value })
+                          setErrorKey(null)
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             {errorKey ? (
               <p id={ERROR_ID} role="alert" className="text-sm text-danger-fg">

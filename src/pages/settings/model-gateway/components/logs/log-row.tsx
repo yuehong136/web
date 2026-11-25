@@ -11,6 +11,8 @@ import {
   formatDuration,
   formatInstant,
 } from '../../utils'
+import { formatCost } from '../../pricing'
+import { retriesOf } from '../../routing'
 import { StatusCode } from '../status-code'
 
 /** "1,204 → 386", "2,048 in" for embeddings, or "Unknown". */
@@ -29,15 +31,22 @@ export function usageText(t: TFunction, log: GatewayLog): string {
   })
 }
 
-const clock = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat(getCurrentLanguage(), {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      }).format(new Date(value))
-    : '-'
+/**
+ * The time of day for today's calls; earlier ones lead with their date, so a
+ * 7 or 30 day list never shows two days as one.
+ */
+export function rowTime(value: string | null, now: Date = new Date()): string {
+  if (!value) return '-'
+  const date = new Date(value)
+  const sameDay = date.toDateString() === now.toDateString()
+  return new Intl.DateTimeFormat(getCurrentLanguage(), {
+    ...(sameDay ? {} : { month: '2-digit', day: '2-digit' }),
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date)
+}
 
 export function LogRow({
   log,
@@ -72,7 +81,7 @@ export function LogRow({
             onSelect()
           }}
         >
-          {clock(log.started_at)}
+          {rowTime(log.started_at)}
         </button>
       </TableCell>
       <TableCell>
@@ -85,10 +94,20 @@ export function LogRow({
         <div className="truncate font-mono text-sm text-fg">
           {log.model ?? '-'}
         </div>
-        <div className="text-xs text-fg-subtle">{endpointLabel(t, log)}</div>
+        <div className="text-xs text-fg-subtle">
+          {endpointLabel(t, log)}
+          {retriesOf(log) > 0
+            ? ` · ${t(`${PREFIX}.logs.retried`, { count: retriesOf(log) })}`
+            : ''}
+        </div>
       </TableCell>
       <TableCell className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
         {usageText(t, log)}
+      </TableCell>
+      <TableCell className="text-right text-sm whitespace-nowrap text-fg-muted tabular-nums">
+        {log.cost === null || log.cost === undefined
+          ? t(`${PREFIX}.common.empty`)
+          : formatCost(log.cost)}
       </TableCell>
       <TableCell className="text-right text-sm whitespace-nowrap text-fg-muted tabular-nums">
         {formatDuration(log.duration_ms)}

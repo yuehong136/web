@@ -12,6 +12,8 @@ import {
   formatInstant,
   logFailed,
 } from '../../utils'
+import { formatCost } from '../../pricing'
+import { retriesOf } from '../../routing'
 import { StatusCode } from '../status-code'
 
 /** "support-bot · qwen-plus", the heading of the detail panel. */
@@ -111,6 +113,44 @@ export function LogDetail({ log }: { log: GatewayLog }) {
         </div>
       </section>
 
+      {retriesOf(log) > 0 ? (
+        <section>
+          <h3 className="mb-space-2xs text-sm font-semibold text-fg">
+            {t(`${PREFIX}.logs.detail.attempts`)}
+          </h3>
+          <p className="mb-space-sm text-xs text-fg-subtle">
+            {t(`${PREFIX}.logs.detail.attemptsHint`)}
+          </p>
+          <ol className="flex flex-col gap-space-xs">
+            {(log.attempts ?? []).map((attempt, index) => (
+              <li
+                key={index}
+                className="flex items-center gap-space-sm rounded-radius-md border border-line-subtle px-space-sm py-space-xs text-sm"
+              >
+                <span className="w-4 text-xs text-fg-subtle tabular-nums">
+                  {index + 1}
+                </span>
+                <StatusCode code={attempt.status_code} />
+                <span className="min-w-0 flex-1 truncate">
+                  <span className="font-mono text-fg">
+                    {attempt.model_name}
+                  </span>
+                  <span className="text-xs text-fg-subtle">
+                    {' · '}
+                    {attempt.provider}
+                    {attempt.instance_name ? ` / ${attempt.instance_name}` : ''}
+                    {attempt.error_code ? ` · ${attempt.error_code}` : ''}
+                  </span>
+                </span>
+                <span className="text-xs whitespace-nowrap text-fg-muted tabular-nums">
+                  {formatDuration(attempt.duration_ms)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
       <dl className="grid grid-cols-[auto_1fr] gap-x-space-lg gap-y-space-xs text-sm">
         <Field label={t(`${PREFIX}.logs.detail.requestId`)}>
           <span className="font-mono text-xs">{log.id}</span>
@@ -130,6 +170,18 @@ export function LogDetail({ log }: { log: GatewayLog }) {
           </span>
         </Field>
         <Field label={t(`${PREFIX}.logs.detail.tokens`)}>{tokens}</Field>
+        {log.cache_read_input_tokens ? (
+          <Field label={t(`${PREFIX}.logs.detail.cachedTokens`)}>
+            {formatCount(log.cache_read_input_tokens)}
+          </Field>
+        ) : null}
+        {log.cost === undefined ? null : (
+          <Field label={t(`${PREFIX}.logs.detail.cost`)}>
+            {log.cost === null
+              ? t(`${PREFIX}.logs.detail.noCost`)
+              : formatCost(log.cost)}
+          </Field>
+        )}
         <Field label={t(`${PREFIX}.logs.detail.usageSource`)}>{source}</Field>
         <Field label={t(`${PREFIX}.logs.detail.endUser`)}>
           <span className="font-mono">{log.end_user ?? empty}</span>

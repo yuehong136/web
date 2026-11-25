@@ -383,6 +383,15 @@ export default {
         firstTokenHint: 'Streamed requests only',
         firstTokenNone: 'No streamed requests in this period',
         chartTitle: { day: 'Requests per day', hour: 'Requests per hour' },
+        chartTitleTokens: { day: 'Tokens per day', hour: 'Tokens per hour' },
+        chartTitleSpend: { day: 'Spend per day', hour: 'Spend per hour' },
+        chartBarSpend: '{{time}}: {{value}}',
+        spend: 'Spend',
+        spendPerRequest: '{{value}} per request on average',
+        spendHint: 'In US dollars; priced models only',
+        chartMetric: 'Chart metric',
+        chartPeak: 'Peak {{value}}',
+        chartBarTokens: '{{time}}: {{tokens}} tokens',
         chartSuccess: 'Succeeded',
         chartFailed: 'Failed',
         chartSummary:
@@ -408,12 +417,23 @@ export default {
         newDefaultOff: 'Closed by default',
         search: 'Search models or call names',
         allProviders: 'All providers',
+        allStates: 'All states',
+        stateFilter: {
+          callable: 'Open',
+          closed: 'Closed',
+          unavailable: 'Unavailable',
+        },
         summary: '{{open}} / {{total}} models open on the gateway',
         unsupportedSummary_one: '{{count}} provider not supported yet',
         unsupportedSummary_other: '{{count}} providers not supported yet',
         connection: 'Connection {{name}}',
         prefixHint: '"{{prefix}}model name" always works',
         countOpen: '{{open}} / {{total}} models open',
+        requests7d: '{{value}} requests in 7 days',
+        countMatching_one: '{{count}} matches the filters',
+        countMatching_other: '{{count}} match the filters',
+        expandAll: 'Expand all',
+        collapseAll: 'Collapse all',
         manage: 'Manage in model providers',
         openAll: 'Open all',
         openAllLabel: 'Open all models of {{name}}',
@@ -421,17 +441,23 @@ export default {
           callName: 'Call name',
           capabilities: 'Capabilities',
           upstream: 'Upstream model',
+          price: 'Price in / out',
           limits: 'Model limits',
           requests7d: 'Last 7 days',
           open: 'Open',
         },
-        sharesName: 'Same name',
-        sharesNameHint:
-          'Another model has this name; the name without a prefix reaches only one of them',
+        priceHint: 'US dollars per million tokens',
+        priceHintTiered:
+          'US dollars per million tokens; longer prompts are charged at a higher tier',
+        customPrice: 'Custom',
+        contextWindow: '{{value}} context',
+        pooled: '{{count}} deployments',
+        pooledHint:
+          'Calls to {{name}} are served by {{count}} models, by order and weight; the connection-prefixed name reaches only this one',
+        orderValue: 'Order {{value}}',
+        orderUnset: 'No order',
+        weightValue: 'Weight {{value}}',
         alias: 'Alias',
-        preferred: 'Preferred: the name without a prefix reaches this one',
-        notPreferred:
-          'Another model with this name is preferred; call this one by its prefixed name',
         openLabel: 'Open {{name}} on the gateway',
         moreLabel: 'Gateway settings of {{name}}',
         unsupportedDetail:
@@ -448,12 +474,33 @@ export default {
             '{{provider}} · connection {{instance}} · upstream model {{model}}',
           alias: 'Alias',
           aliasHint:
-            'Optional. It becomes the primary call name; the other names keep working. Letters, digits and . _ : / @ - only.',
-          preferred: 'Prefer this model',
+            'Optional. It becomes the primary call name; the other names keep working. Models given the same alias serve that name together. Letters, digits and . _ : / @ - only.',
+          preferred: 'List the shared name under this model',
           preferredHint:
-            'Among models with the same name, only the preferred one answers to the name without a prefix. Adding a model with the same name never changes existing calls.',
+            'Models with the same name share the name without a prefix. Here and in /v1/models it is listed under the preferred one. This does not change how traffic is split.',
+          routingTitle: 'Routing among deployments',
+          routingHint:
+            "Models with the same name or alias serve that name together: the lowest order goes first and the next takes over when it fails or cools down; within one order traffic follows weight. The rules are those of LiteLLM's order and weight.",
+          routingPool: '{{name}}: served by {{count}} models',
+          routing: {
+            order: 'Order (lowest first)',
+            orderPlaceholder: 'Not set (goes last)',
+            weight: 'Weight',
+            weightPlaceholder: '1 – {{max}}, default 1',
+          },
           names: 'Call names',
           copyName: 'Copy {{name}}',
+          priceTitle: 'Price',
+          priceHint:
+            'US dollars per million tokens. The price list does not have this model; calls are charged once a price is set.',
+          priceHintListed:
+            'US dollars per million tokens. Leave empty to use the price from the LiteLLM price list (shown in grey).',
+          priceUnset: 'Not set',
+          price: {
+            input: 'Input',
+            output: 'Output',
+            cacheRead: 'Cached input',
+          },
           limitsTitle: 'Model limits',
           limitsHint:
             'These limits add up across all keys to protect upstream capacity. Leave empty for unlimited.',
@@ -628,14 +675,25 @@ export default {
         outcomes: { success: 'Succeeded', error: 'Failed' },
         endUser: 'End user',
         endUserPlaceholder: 'Filter by end user',
-        shareHint: 'Filters are kept in the link, ready to share',
+        statusCode: 'Status code',
+        live: 'Live',
+        liveHint:
+          'Refreshes every 10 seconds; pauses while the page is in the background',
+        refresh: 'Refresh',
         export: 'Export CSV',
+        exportHint:
+          'Exports every record matching the filters, up to {{value}}',
+        exporting: 'Cancel export {{loaded}} / {{total}}',
+        exportTruncated:
+          'Exported the latest {{value}} records; narrow the filters to export the rest',
+        exportFailed: 'Export failed. Try again.',
         columns: {
           time: 'Time',
           status: 'Status',
           key: 'Key',
           model: 'Model',
           usage: 'Usage',
+          cost: 'Cost',
           duration: 'Duration',
         },
         usageValue: '{{prompt}} → {{completion}}',
@@ -645,6 +703,7 @@ export default {
         emptyDescription:
           'Calls through the gateway appear here. Request and response bodies are never stored.',
         rowLabel: '{{time}} {{key}} {{model}} {{status}}',
+        retried: 'switched deployment ×{{count}}',
         detail: {
           time: '{{value}} (local time)',
           duration: 'Duration',
@@ -659,6 +718,13 @@ export default {
           endpoint: 'Endpoint',
           tokens: 'Tokens',
           tokensValue: '{{prompt}} in · {{completion}} out · {{total}} total',
+          cachedTokens: 'Cached tokens',
+          cost: 'Cost',
+          noCost:
+            'Not charged (the model has no price or the usage is unknown)',
+          attempts: 'Attempts',
+          attemptsHint:
+            'This call moved between deployments: the earlier ones failed or were at their own limit, and the last one gave the result.',
           usageSource: 'Usage source',
           sources: {
             reported: 'Reported by upstream',
@@ -681,6 +747,8 @@ export default {
           promptTokens: 'Prompt tokens',
           completionTokens: 'Completion tokens',
           totalTokens: 'Total tokens',
+          cachedTokens: 'Cached tokens',
+          costUsd: 'Cost (USD)',
           durationMs: 'Duration (ms)',
           firstTokenMs: 'First token (ms)',
           endUser: 'End user',
@@ -751,7 +819,10 @@ export default {
       },
       errors: {
         nameTaken: 'This name is already in use.',
-        aliasTaken: 'Another model already answers to this alias.',
+        aliasTaken:
+          'This is already the call name of another model and cannot be an alias. To make two models share a name, give both the same alias.',
+        invalidRouting:
+          'Order is a whole number from 1 to 100 and weight a whole number from 1 to 1000.',
         gone: 'This item no longer exists. Refresh the page.',
         invalid: 'Some values are not valid. Check the form.',
         invalidScope:
@@ -760,6 +831,8 @@ export default {
         invalidAlias:
           'Use letters, digits and . _ : / @ - only, starting with a letter or digit.',
         invalidLimit: 'Limits and quotas must be positive whole numbers.',
+        invalidPrice:
+          'Prices are numbers of 0 or more with at most 6 decimals; an output or cached price needs an input price.',
         nameRequired: 'Enter a name.',
         invalidExpiry: 'The expiry must be in the future.',
       },

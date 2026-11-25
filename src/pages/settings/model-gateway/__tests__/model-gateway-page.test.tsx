@@ -108,6 +108,9 @@ const catalog: GatewayCatalog = {
       model_id: modelId(13),
       model_name: 'qwen-plus',
       shares_name: true,
+      weight: 3,
+      order: 1,
+      pools: [{ name: 'qwen-plus', deployments: 2 }],
       rpm_limit: 600,
     }),
     model({
@@ -339,7 +342,9 @@ it('groups the catalog by connection and opens a model with its id', async () =>
 
   expect(section.textContent).toContain('Tongyi-Qianwen/')
   expect(section.textContent).toContain('2 / 3 models open')
-  expect(section.textContent).toContain('Same name')
+  // A model that serves a name with others says so, with its place in the order.
+  expect(section.textContent).toContain('2 deployments')
+  expect(section.textContent).toContain('Order 1 · Weight 3')
   expect(section.textContent).toContain('600 req/min')
   expect(labelled('VLLM · gpu-a')).not.toBeNull()
   // A provider the gateway cannot relay collapses into one card.

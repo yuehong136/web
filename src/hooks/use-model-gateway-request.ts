@@ -68,12 +68,17 @@ export const useFetchGatewayOverview = (days: GatewayWindow) =>
     retry: retryUnlessSettled,
   })
 
-export const useFetchGatewayLogs = (query: GatewayLogQuery) =>
+/** How often a live request log asks for new rows. */
+export const GATEWAY_LOGS_LIVE_INTERVAL = 10_000
+
+export const useFetchGatewayLogs = (query: GatewayLogQuery, live = false) =>
   useQuery({
     queryKey: modelGatewayKeys.logs(query),
     queryFn: ({ signal }) => modelGatewayAPI.queryLogs(query, signal),
     // Keep the previous page on screen while the next one loads.
     placeholderData: keepPreviousData,
+    // Polling stops by itself while the tab is in the background.
+    refetchInterval: live ? GATEWAY_LOGS_LIVE_INTERVAL : false,
     retry: retryUnlessSettled,
   })
 

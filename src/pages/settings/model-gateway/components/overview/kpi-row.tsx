@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatPercent,
 } from '../../utils'
+import { formatCost } from '../../pricing'
 
 /** Requests, tokens, failure rate and first-token latency of the window. */
 export function KpiRow({ overview }: { overview: GatewayOverview }) {
@@ -19,7 +20,11 @@ export function KpiRow({ overview }: { overview: GatewayOverview }) {
   return (
     <section
       aria-label={t(`${PREFIX}.overview.usageTitle`)}
-      className="grid gap-space-md sm:grid-cols-2 xl:grid-cols-4"
+      className={
+        totals.spend === undefined
+          ? 'grid gap-space-md sm:grid-cols-2 xl:grid-cols-4'
+          : 'grid gap-space-md sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'
+      }
     >
       <StatCard
         title={t(`${PREFIX}.overview.requests`)}
@@ -40,6 +45,19 @@ export function KpiRow({ overview }: { overview: GatewayOverview }) {
           completion: formatCompact(totals.completion_tokens),
         })}
       />
+      {totals.spend === undefined ? null : (
+        <StatCard
+          title={t(`${PREFIX}.overview.spend`)}
+          value={formatCost(totals.spend)}
+          description={
+            totals.requests > 0 && totals.spend > 0
+              ? t(`${PREFIX}.overview.spendPerRequest`, {
+                  value: formatCost(totals.spend / totals.requests),
+                })
+              : t(`${PREFIX}.overview.spendHint`)
+          }
+        />
+      )}
       <StatCard
         title={t(`${PREFIX}.overview.failureRate`)}
         value={formatPercent(failureRate)}
