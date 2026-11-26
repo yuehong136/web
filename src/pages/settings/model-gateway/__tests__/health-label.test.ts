@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
 import { expect, it } from 'vitest'
 import type { GatewayModelHealth } from '@/api/model-gateway'
-import { healthLabel } from '../components/models/model-row'
+import { healthLabel } from '../components/models/model-status'
 
 /** Names the string that was chosen and the values it was given. */
 const t = ((key: string, values?: Record<string, unknown>) =>

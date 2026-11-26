@@ -4,12 +4,15 @@ import { useTranslation } from 'react-i18next'
 import type { GatewayLog } from '@/api/model-gateway'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { getCurrentLanguage } from '@/locales/i18n'
+import { cn } from '@/lib/utils'
 import {
   PREFIX,
   endpointLabel,
+  errorCodeOf,
   formatCount,
   formatDuration,
   formatInstant,
+  logFailed,
 } from '../../utils'
 import { formatCost } from '../../pricing'
 import { retriesOf } from '../../routing'
@@ -50,14 +53,18 @@ export function rowTime(value: string | null, now: Date = new Date()): string {
 
 export function LogRow({
   log,
+  peakDuration,
   selected,
   onSelect,
 }: {
   log: GatewayLog
+  /** The slowest call on the page, the full width of the duration bar. */
+  peakDuration: number
   selected: boolean
   onSelect: () => void
 }) {
   const { t } = useTranslation()
+  const failure = logFailed(log) ? errorCodeOf(log) : null
   return (
     <TableRow
       data-state={selected ? 'selected' : undefined}
@@ -102,15 +109,45 @@ export function LogRow({
         </div>
       </TableCell>
       <TableCell className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
-        {usageText(t, log)}
+        {failure && log.total_tokens === null ? (
+          // A failed call has no usage; what went wrong is the useful thing here.
+          <span
+            className={cn(
+              'font-mono text-xs',
+              log.status_code >= 500 ? 'text-danger-fg' : 'text-warning-fg',
+            )}
+          >
+            {failure}
+          </span>
+        ) : (
+          usageText(t, log)
+        )}
       </TableCell>
       <TableCell className="text-right text-sm whitespace-nowrap text-fg-muted tabular-nums">
         {log.cost === null || log.cost === undefined
           ? t(`${PREFIX}.common.empty`)
           : formatCost(log.cost)}
       </TableCell>
-      <TableCell className="text-right text-sm whitespace-nowrap text-fg-muted tabular-nums">
-        {formatDuration(log.duration_ms)}
+      <TableCell className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
+        <div className="flex items-center justify-end gap-space-sm">
+          <span
+            aria-hidden="true"
+            className="h-1 w-10 overflow-hidden rounded-radius-full bg-fill-pressed"
+          >
+            <span
+              className={cn(
+                'block h-full rounded-radius-full',
+                logFailed(log) ? 'bg-fg-subtle' : 'bg-accent-solid',
+              )}
+              style={{
+                width: `${peakDuration > 0 ? Math.max((log.duration_ms / peakDuration) * 100, 4) : 0}%`,
+              }}
+            />
+          </span>
+          <span className="min-w-12 text-right">
+            {formatDuration(log.duration_ms)}
+          </span>
+        </div>
       </TableCell>
       <TableCell className="w-8 text-fg-subtle">
         <ChevronRight className="size-icon-sm" aria-hidden="true" />

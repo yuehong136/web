@@ -71,7 +71,7 @@ export function OverviewPanel({
           }))}
         />
       </div>
-      <KpiRow overview={overview} />
+      <KpiRow overview={overview} catalog={catalog} />
       <RequestsChart overview={overview} />
       <div className="grid gap-space-md lg:grid-cols-2">
         <TopModels overview={overview} onViewAll={() => onNavigate('models')} />

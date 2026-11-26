@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useUpdateCatalogModel } from '@/hooks/use-model-gateway-request'
 import { getMutationErrorNotice } from '@/lib/mutation-error-feedback'
 import { toast } from '@/lib/toast'
+import { cn } from '@/lib/utils'
 import {
   ALIAS_PATTERN,
   limitDraftOf,
@@ -43,6 +44,7 @@ import {
 } from '../../routing'
 import { PREFIX, gatewayErrorKey } from '../../utils'
 import { CopyField } from '../copy-field'
+import { StatusLight, modelStatusView } from './model-status'
 import { LimitFields } from '../limit-fields'
 
 const ERROR_ID = 'gateway-model-settings-error'
@@ -73,6 +75,7 @@ export function ModelSettingsDialog({
   const listed = model.pricing?.source === 'litellm' ? model.pricing : null
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const pending = mutation.isPending
+  const status = modelStatusView(t, model)
 
   const close = () => {
     if (!pending) onClose()
@@ -132,6 +135,22 @@ export function ModelSettingsDialog({
         </DialogHeader>
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <DialogBody className="space-y-space-lg">
+            {status.detail && status.tone !== 'neutral' ? (
+              <div
+                role="note"
+                className={cn(
+                  'flex items-start gap-space-sm rounded-radius-md border p-space-md text-sm',
+                  status.tone === 'success'
+                    ? 'border-line-subtle text-fg-muted'
+                    : status.tone === 'warning'
+                      ? 'border-warning-line bg-warning-soft text-fg'
+                      : 'border-danger-line bg-danger-soft text-fg',
+                )}
+              >
+                <StatusLight tone={status.tone} className="mt-space-2xs" />
+                <p>{status.detail}</p>
+              </div>
+            ) : null}
             <div className="space-y-space-xs">
               <Label htmlFor="gateway-model-alias">
                 {t(`${PREFIX}.models.settings.alias`)}

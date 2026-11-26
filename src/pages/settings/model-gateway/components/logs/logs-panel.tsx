@@ -63,6 +63,7 @@ export function LogsPanel({
   const query = logQueryOf(filters)
   const logsQuery = useFetchGatewayLogs(query, live)
   const logs = logsQuery.data?.items ?? []
+  const peakDuration = Math.max(0, ...logs.map((log) => log.duration_ms))
   const total = logsQuery.data?.total ?? 0
   // The end-user field is applied on Enter or when it loses focus.
   const [endUser, setEndUser] = useState(filters.endUser ?? '')
@@ -171,6 +172,7 @@ export function LogsPanel({
               <LogRow
                 key={log.id}
                 log={log}
+                peakDuration={peakDuration}
                 selected={log.id === selectedId}
                 onSelect={() => onSelect(log)}
               />

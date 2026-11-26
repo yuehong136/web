@@ -1,19 +1,19 @@
 import type { TFunction } from 'i18next'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { GatewayCatalog, GatewayKey } from '@/api/model-gateway'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { scopeOfKey } from '../../catalog'
 import { PREFIX, daysLeft, formatCompact, quotaPercent } from '../../utils'
-import { StatusDot } from '../status-dot'
 import { UsageBar } from '../usage-bar'
 import { KeyScopeCell } from './key-scope-cell'
 
-const STATUS_TONE = {
-  active: 'success',
-  disabled: 'neutral',
-  revoked: 'error',
+/** The key's tile says its state: in use, switched off, or gone for good. */
+const TILE = {
+  active: 'bg-success-soft text-success-fg',
+  disabled: 'bg-sunken text-fg-subtle',
+  revoked: 'bg-danger-soft text-danger-fg',
 } as const
 
 /** "89 days left", turning to a warning within a week. */
@@ -67,28 +67,39 @@ export function KeyRow({
       className="cursor-pointer"
       onClick={onSelect}
     >
-      <TableCell className="max-w-48 py-space-sm">
+      <TableCell className="max-w-56 py-space-sm">
         <button
           type="button"
           aria-pressed={selected}
-          className="flex max-w-full min-w-0 flex-col items-start rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
+          // The name and state sit a few elements deep; say them on the control itself.
+          aria-label={`${key.name}, ${t(`${PREFIX}.keyStatus.${key.status}`)}`}
+          className="flex max-w-full min-w-0 rounded-radius-sm text-left outline-hidden focus-visible:ring-2 focus-visible:ring-line-focus"
           onClick={(event) => {
             event.stopPropagation()
             onSelect()
           }}
         >
-          <span className="flex max-w-full min-w-0 items-center gap-space-xs">
-            <StatusDot tone={STATUS_TONE[key.status]}>
+          <span className="flex max-w-full min-w-0 items-center gap-space-sm">
+            <span
+              className={cn(
+                'grid size-7 shrink-0 place-items-center rounded-radius-md',
+                TILE[key.status],
+              )}
+              title={t(`${PREFIX}.keyStatus.${key.status}`)}
+            >
+              <KeyRound className="size-icon-sm" aria-hidden="true" />
               <span className="sr-only">
                 {t(`${PREFIX}.keyStatus.${key.status}`)}
               </span>
-            </StatusDot>
-            <span className="truncate text-sm font-medium text-fg">
-              {key.name}
             </span>
-          </span>
-          <span className="truncate pl-space-md font-mono text-xs text-fg-subtle">
-            {key.redacted_key}
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-medium text-fg">
+                {key.name}
+              </span>
+              <span className="truncate font-mono text-xs text-fg-subtle">
+                {key.redacted_key}
+              </span>
+            </span>
           </span>
         </button>
       </TableCell>
