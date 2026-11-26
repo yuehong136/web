@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { GatewayCatalog, GatewayOverview } from '@/api/model-gateway'
-import { StatCard } from '@/components/patterns'
+import { getCurrentLanguage } from '@/locales/i18n'
 import {
   PREFIX,
   formatChange,
@@ -19,6 +19,7 @@ import {
 } from '../../utils'
 import { isCallable } from '../../catalog'
 import { formatCost } from '../../pricing'
+import { KpiCard, type KpiTrendPoint } from './kpi-card'
 
 const ICON = 'size-icon-sm'
 
@@ -54,16 +55,48 @@ export function KpiRow({
   const { totals, previous_requests: previous } = overview
   const failureRate = totals.requests ? totals.errors / totals.requests : 0
   const topError = overview.errors_by_code[0]
+  // Day buckets are UTC days; hour buckets read best in local time.
+  const clock = new Intl.DateTimeFormat(
+    getCurrentLanguage(),
+    overview.bucket === 'day'
+      ? { month: 'numeric', day: 'numeric', timeZone: 'UTC' }
+      : {
+          month: 'numeric',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        },
+  )
+  const trend = (
+    valueOf: (point: GatewayOverview['series'][number]) => number,
+    show: (value: number, point: GatewayOverview['series'][number]) => string,
+  ): KpiTrendPoint[] =>
+    overview.series.map((point) => ({
+      value: valueOf(point),
+      label: show(valueOf(point), point),
+    }))
+  const at = (point: GatewayOverview['series'][number], value: string) =>
+    t(`${PREFIX}.overview.chartBarSpend`, {
+      time: clock.format(new Date(point.start)),
+      value,
+    })
+  const hasTokens = overview.series.some(
+    (point) => point.total_tokens !== undefined,
+  )
   return (
     <section
       aria-label={t(`${PREFIX}.overview.usageTitle`)}
       className="grid gap-space-md sm:grid-cols-2 lg:grid-cols-3"
     >
-      <StatCard
+      <KpiCard
         title={t(`${PREFIX}.overview.requests`)}
         icon={<Activity className={ICON} aria-hidden="true" />}
         tone="info"
         value={formatCount(totals.requests)}
+        trend={trend(
+          (point) => point.requests,
+          (value, point) => at(point, formatCount(value)),
+        )}
         description={
           previous > 0
             ? t(`${PREFIX}.overview.requestsChange`, {
@@ -72,20 +105,32 @@ export function KpiRow({
             : t(`${PREFIX}.overview.requestsNoPrevious`)
         }
       />
-      <StatCard
+      <KpiCard
         title={t(`${PREFIX}.overview.tokens`)}
         icon={<Type className={ICON} aria-hidden="true" />}
         value={formatCompact(totals.total_tokens)}
+        trend={
+          hasTokens
+            ? trend(
+                (point) => point.total_tokens ?? 0,
+                (value, point) => at(point, formatCount(value)),
+              )
+            : undefined
+        }
         description={t(`${PREFIX}.overview.tokensSplit`, {
           prompt: formatCompact(totals.prompt_tokens),
           completion: formatCompact(totals.completion_tokens),
         })}
       />
       {totals.spend === undefined ? null : (
-        <StatCard
+        <KpiCard
           title={t(`${PREFIX}.overview.spend`)}
           icon={<CircleDollarSign className={ICON} aria-hidden="true" />}
           value={formatCost(totals.spend)}
+          trend={trend(
+            (point) => point.spend ?? 0,
+            (value, point) => at(point, formatCost(value)),
+          )}
           description={
             totals.requests > 0 && totals.spend > 0
               ? t(`${PREFIX}.overview.spendPerRequest`, {
@@ -95,9 +140,18 @@ export function KpiRow({
           }
         />
       )}
-      <StatCard
+      <KpiCard
         title={t(`${PREFIX}.overview.failureRate`)}
         icon={<TriangleAlert className={ICON} aria-hidden="true" />}
+        trend={trend(
+          (point) => (point.requests ? point.errors / point.requests : 0),
+          (value, point) =>
+            t(`${PREFIX}.overview.failureRateAt`, {
+              time: clock.format(new Date(point.start)),
+              value: formatPercent(value),
+              errors: formatCount(point.errors),
+            }),
+        )}
         tone={
           failureRate >= 0.2
             ? 'error'
@@ -116,7 +170,7 @@ export function KpiRow({
             : t(`${PREFIX}.overview.failureNone`)
         }
       />
-      <StatCard
+      <KpiCard
         title={t(`${PREFIX}.overview.firstToken`)}
         icon={<Timer className={ICON} aria-hidden="true" />}
         value={
@@ -130,7 +184,7 @@ export function KpiRow({
             : `${PREFIX}.overview.firstTokenHint`,
         )}
       />
-      <StatCard
+      <KpiCard
         title={t(`${PREFIX}.overview.health`)}
         icon={<HeartPulse className={ICON} aria-hidden="true" />}
         tone={

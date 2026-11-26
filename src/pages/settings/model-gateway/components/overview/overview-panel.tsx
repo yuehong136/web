@@ -12,6 +12,7 @@ import { useFetchGatewayOverview } from '@/hooks/use-model-gateway-request'
 import type { GatewayNavigate } from '../../constants'
 import { PREFIX } from '../../utils'
 import { EndpointCard } from './endpoint-card'
+import { ErrorBreakdown } from './error-breakdown'
 import { KpiRow } from './kpi-row'
 import { RecentFailures } from './recent-failures'
 import { RequestsChart } from './requests-chart'
@@ -81,12 +82,17 @@ export function OverviewPanel({
           onViewAll={() => onNavigate('keys')}
         />
       </div>
-      <RecentFailures
-        overview={overview}
-        onViewLogs={() =>
-          onNavigate('logs', { outcome: 'error', range: String(days) })
-        }
-      />
+      <div className="grid gap-space-md lg:grid-cols-3">
+        <ErrorBreakdown overview={overview} />
+        <div className="lg:col-span-2">
+          <RecentFailures
+            overview={overview}
+            onViewLogs={() =>
+              onNavigate('logs', { outcome: 'error', range: String(days) })
+            }
+          />
+        </div>
+      </div>
     </div>
   )
 }

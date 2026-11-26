@@ -5,7 +5,7 @@ import { SectionCard } from '@/components/patterns'
 import { ProviderLogo } from '@/components/patterns/provider-logo'
 import { Button } from '@/components/ui/button'
 import { formatCost } from '../../pricing'
-import { PREFIX, formatCompact, quotaPercent } from '../../utils'
+import { PREFIX, formatCompact, formatPercent, quotaPercent } from '../../utils'
 import { UsageBar } from '../usage-bar'
 
 function TopList({
@@ -53,6 +53,7 @@ export function TopModels({
 }) {
   const { t } = useTranslation()
   const top = overview.top_models[0]?.total_tokens ?? 0
+  const all = overview.totals.total_tokens
   return (
     <TopList
       title={t(`${PREFIX}.overview.topModels`)}
@@ -63,7 +64,7 @@ export function TopModels({
       {overview.top_models.map((model) => (
         <li
           key={model.model_id}
-          className="flex items-center gap-space-md px-space-lg py-space-sm"
+          className="flex items-center gap-space-md px-space-lg py-space-sm transition-colors hover:bg-fill-hover"
         >
           <ProviderLogo provider={model.provider} size="sm" />
           <div className="min-w-0 flex-1">
@@ -79,7 +80,7 @@ export function TopModels({
               />
             </div>
           </div>
-          <div className="w-24 shrink-0 text-right">
+          <div className="w-40 shrink-0 text-right">
             <div className="text-sm text-fg tabular-nums">
               {formatCompact(model.total_tokens)}
             </div>
@@ -88,6 +89,11 @@ export function TopModels({
                 t(`${PREFIX}.overview.requestsCount`, {
                   count: model.requests,
                 }),
+                all > 0
+                  ? t(`${PREFIX}.overview.topShare`, {
+                      share: formatPercent(model.total_tokens / all, 0),
+                    })
+                  : null,
                 model.spend ? formatCost(model.spend) : null,
               ]
                 .filter(Boolean)

@@ -403,6 +403,12 @@ export default {
           'Requests over the last {{range}}: {{requests}} requests, {{errors}} failed, peak {{peak}}',
         chartBar: '{{time}}: {{requests}} requests, {{errors}} failed',
         chartEmpty: 'No requests in this period',
+        chartExplore:
+          'Requests chart: hover or use the left and right arrow keys to read each period',
+        errorBreakdown: 'Why calls failed',
+        errorShare: '{{count}} · {{share}}',
+        topShare: '{{share}} of tokens',
+        failureRateAt: '{{time}}: {{value}} ({{errors}} failed)',
         topModels: 'By model',
         allModels: 'All models',
         topKeys: 'By key',
