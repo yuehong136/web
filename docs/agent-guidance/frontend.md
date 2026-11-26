@@ -171,6 +171,7 @@
 - 默认路径是**按主题静态取值**：从 `@/lib/design-tokens` 用 `getTokenValue(name, mode, preset)` / `getCategoricalPalette(mode, count, preset)`，`mode` 与 `preset` 来自 `useResolvedAppearance()`（React 外用 `getResolvedAppearance()`）；缓存、图表 effect 必须同时依赖二者。值来自生成的 `token-values.generated.ts`（hex / rgba），`custom` 方案按用户的品牌色种子在运行时生成。
 - 分类色用 `viz-1..10`（身份稳定，不随方案换色相），轴线用 `viz-axis`；图表状态色用意图的 `-fg` / `-soft` 或 `run-*`。
 - `readCssVar` / 运行时 `getComputedStyle` 只保留给 scoped-theme/embed 表面。**禁止硬编码 hex**。
+- 页面里的数据图表用 Recharts，经 `@/components/charts`：`TimeSeriesChart`（时间序列柱/面积）、`Sparkline`（指标卡趋势）、`ChartTooltipCard`（悬停浮层）、`useChartTheme`（按上面的规则取色）。不要再用 div 或手写 SVG 拼坐标轴、刻度和浮层；缺的图形先补进这一层。ECharts 只留给 Agent 的 HTML 报告。
 
 #### 令牌闭环（强制）
 

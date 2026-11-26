@@ -1,4 +1,5 @@
-import { useState, type PointerEvent, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Sparkline, useChartTheme, type ChartTheme } from '@/components/charts'
 import { SectionCard } from '@/components/patterns'
 import { cn } from '@/lib/utils'
 
@@ -12,101 +13,19 @@ const ICON_TONE: Record<KpiTone, string> = {
   error: 'bg-danger-soft text-danger-fg',
 }
 
-const LINE_TONE: Record<KpiTone, string> = {
-  neutral: 'text-accent-solid',
-  info: 'text-accent-solid',
-  success: 'text-success-fg',
-  warning: 'text-warning-fg',
-  error: 'text-danger-fg',
-}
+const lineColor = (tone: KpiTone, theme: ChartTheme) =>
+  tone === 'warning'
+    ? theme.warning
+    : tone === 'error'
+      ? theme.danger
+      : tone === 'success'
+        ? theme.success
+        : theme.accent
 
 export interface KpiTrendPoint {
   /** What the description line reads while this point is hovered. */
   label: string
   value: number
-}
-
-const WIDTH = 100
-const HEIGHT = 28
-
-/** The points as an SVG path from one zero baseline; `null` when flat at zero. */
-export function sparklinePath(values: number[]): string | null {
-  const peak = Math.max(0, ...values)
-  if (values.length < 2 || peak === 0) return null
-  const step = WIDTH / (values.length - 1)
-  return values
-    .map((value, index) => {
-      const x = (index * step).toFixed(2)
-      const y = (HEIGHT - (value / peak) * (HEIGHT - 2) - 1).toFixed(2)
-      return `${index === 0 ? 'M' : 'L'}${x} ${y}`
-    })
-    .join(' ')
-}
-
-function Sparkline({
-  values,
-  active,
-  onActive,
-  className,
-}: {
-  values: number[]
-  active: number | null
-  onActive: (index: number | null) => void
-  className: string
-}) {
-  const path = sparklinePath(values)
-  if (!path) return <div className="h-8" aria-hidden="true" />
-  const move = (event: PointerEvent<HTMLDivElement>) => {
-    const box = event.currentTarget.getBoundingClientRect()
-    const ratio = (event.clientX - box.left) / box.width
-    onActive(
-      Math.min(
-        values.length - 1,
-        Math.max(0, Math.round(ratio * (values.length - 1))),
-      ),
-    )
-  }
-  const markerX =
-    active === null ? null : (active / (values.length - 1)) * WIDTH
-  return (
-    <div
-      aria-hidden="true"
-      className={cn('h-8 touch-none', className)}
-      onPointerMove={move}
-      onPointerLeave={() => onActive(null)}
-    >
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        preserveAspectRatio="none"
-        className="size-full overflow-visible"
-      >
-        <path
-          d={`${path} L${WIDTH} ${HEIGHT} L0 ${HEIGHT} Z`}
-          fill="currentColor"
-          opacity={0.12}
-        />
-        <path
-          d={path}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        {markerX === null ? null : (
-          <line
-            x1={markerX}
-            x2={markerX}
-            y1={0}
-            y2={HEIGHT}
-            stroke="currentColor"
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-      </svg>
-    </div>
-  )
 }
 
 /**
@@ -129,6 +48,7 @@ export function KpiCard({
   tone?: KpiTone
   trend?: KpiTrendPoint[]
 }) {
+  const theme = useChartTheme()
   const [active, setActive] = useState<number | null>(null)
   const point = active === null ? undefined : trend?.[active]
   return (
@@ -156,12 +76,13 @@ export function KpiCard({
         {point ? point.label : description}
       </p>
       {trend ? (
-        <Sparkline
-          values={trend.map((item) => item.value)}
-          active={active}
-          onActive={setActive}
-          className={cn('mt-space-sm', LINE_TONE[tone])}
-        />
+        <div className="mt-space-sm">
+          <Sparkline
+            values={trend.map((item) => item.value)}
+            color={lineColor(tone, theme)}
+            onActive={setActive}
+          />
+        </div>
       ) : null}
     </SectionCard>
   )

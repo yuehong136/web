@@ -1,20 +1,10 @@
 // @vitest-environment jsdom
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { GatewayOverview } from '@/api/model-gateway'
-import { sparklinePath } from '../components/overview/kpi-card'
-import {
-  RequestsChart,
-  niceCeiling,
-} from '../components/overview/requests-chart'
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, values?: Record<string, unknown>) =>
-      values ? `${key} ${JSON.stringify(values)}` : key,
-  }),
-}))
+import { ChartTooltipCard } from '@/components/charts'
+import { RequestsChart, chartRows } from '../components/overview/requests-chart'
 
 const overview = {
   bucket: 'day',
@@ -25,13 +15,7 @@ const overview = {
   },
   totals: { requests: 150, errors: 12 },
   series: [
-    {
-      start: '2026-11-24T00:00:00Z',
-      requests: 40,
-      errors: 0,
-      total_tokens: 9000,
-      spend: 0.12,
-    },
+    { start: '2026-11-24T00:00:00Z', requests: 40, errors: 0 },
     {
       start: '2026-11-25T00:00:00Z',
       requests: 100,
@@ -67,44 +51,53 @@ afterEach(async () => {
 })
 
 describe('gateway overview chart', () => {
-  it('scales to a round ceiling', () => {
-    expect([0, 7, 10, 13, 180, 1070].map(niceCeiling)).toEqual([
-      0, 8, 10, 15, 200, 1200,
+  it('splits each bucket into succeeded and failed calls that stack to its requests', () => {
+    const rows = chartRows(overview)
+
+    expect(
+      rows.map((row) => [row.requests, row.succeeded, row.errors]),
+    ).toEqual([
+      [40, 40, 0],
+      [100, 90, 10],
+      [10, 8, 2],
     ])
+    // A bucket the server sent without usage has no token or spend figure, not a zero.
+    expect([rows[0].tokens, rows[0].spend]).toEqual([undefined, undefined])
+    expect([rows[1].tokens, rows[1].spend]).toEqual([52000, 1.5])
+    expect(rows[1].title).toContain(rows[1].label)
   })
 
-  it('draws no trend for a flat or single-point series', () => {
-    expect(sparklinePath([0, 0, 0])).toBeNull()
-    expect(sparklinePath([5])).toBeNull()
-    expect(sparklinePath([0, 10])).toBe('M0.00 27.00 L100.00 1.00')
-  })
-
-  it('shows every number of the bucket the keyboard moves to', async () => {
+  it('keeps every bucket readable without the drawing', async () => {
     await act(async () => root.render(<RequestsChart overview={overview} />))
-    const slider = container.querySelector<HTMLInputElement>(
-      'input[type="range"]',
-    )!
-    const tip = () =>
-      container.querySelector('[data-testid="gateway-chart-tip"]')
-    const values = () =>
-      [...(tip()?.querySelectorAll('dd') ?? [])].map((node) => node.textContent)
-    expect(tip()).toBeNull()
 
-    // Focus starts on the latest bucket.
-    await act(async () => slider.focus())
-    expect(values()).toEqual(['10', '8', '2 · 20%', '800', '$0.01'])
+    const cells = [...container.querySelectorAll('table td')].map(
+      (cell) => cell.textContent ?? '',
+    )
+    expect(cells).toHaveLength(3)
+    expect(cells[1]).toContain('100')
+    expect(cells[1]).toContain('10')
+  })
 
-    await act(async () => {
-      const setValue = Object.getOwnPropertyDescriptor(
-        HTMLInputElement.prototype,
-        'value',
-      )!.set!
-      setValue.call(slider, '1')
-      slider.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    expect(values().slice(0, 4)).toEqual(['100', '90', '10 · 10%', '52,000'])
+  it('lists the figures of a point with their series colours', async () => {
+    await act(async () =>
+      root.render(
+        <ChartTooltipCard
+          title="11/25"
+          rows={[
+            { label: 'Requests', value: '100', strong: true },
+            { label: 'Failed', value: '10 · 10%', color: 'rgb(1, 2, 3)' },
+          ]}
+        />,
+      ),
+    )
 
-    await act(async () => slider.blur())
-    expect(tip()).toBeNull()
+    const card = container.querySelector('[data-testid="chart-tooltip"]')!
+    expect(card.textContent).toContain('11/25')
+    expect(
+      [...card.querySelectorAll('dd')].map((node) => node.textContent),
+    ).toEqual(['100', '10 · 10%'])
+    expect(
+      card.querySelector<HTMLElement>('dt span')?.style.backgroundColor,
+    ).toBe('rgb(1, 2, 3)')
   })
 })
