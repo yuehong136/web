@@ -5,10 +5,12 @@ import {
   BarChart,
   CartesianGrid,
   ComposedChart,
+  Line,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
+import type { ChartVariant } from './chart-card'
 import { useChartTheme } from './chart-theme'
 
 export interface TimeSeriesMark {
@@ -16,9 +18,7 @@ export interface TimeSeriesMark {
   key: string
   label: string
   color: string
-  /** Bars for counts per bucket, an area for a quantity that flows. */
-  kind: 'bar' | 'area'
-  /** Marks with the same id stack from one baseline. */
+  /** Marks with the same id add up: stacked bars, or stacked areas as lines. Without one a mark stands alone. */
   stackId?: string
 }
 
@@ -27,6 +27,8 @@ interface TimeSeriesChartProps<Row> {
   /** The field of each row that names its bucket on the axis. */
   xKey: keyof Row & string
   marks: TimeSeriesMark[]
+  /** Bars for amounts per bucket, lines for how a quantity moves. */
+  variant: ChartVariant
   formatValue: (value: number) => string
   /** The tooltip of one bucket; the chart places it and follows the pointer or arrow keys. */
   renderTooltip: (row: Row) => ReactNode
@@ -45,6 +47,7 @@ export function TimeSeriesChart<Row extends object>({
   data,
   xKey,
   marks,
+  variant,
   formatValue,
   renderTooltip,
   label,
@@ -52,10 +55,10 @@ export function TimeSeriesChart<Row extends object>({
 }: TimeSeriesChartProps<Row>) {
   const theme = useChartTheme()
   const tick = { fill: theme.tick, fontSize: 12 }
-  const lastBar = marks.filter((mark) => mark.kind === 'bar').at(-1)?.key
-  // A bar chart highlights the whole bucket under the pointer; a mixed one marks it with a line.
-  const barsOnly = marks.every((mark) => mark.kind === 'bar')
-  const Chart = barsOnly ? BarChart : ComposedChart
+  const bars = variant === 'bar'
+  // A bar chart highlights the whole bucket under the pointer; a line chart marks it with a rule.
+  const Chart = bars ? BarChart : ComposedChart
+  const lastOfStack = new Map(marks.map((mark) => [mark.stackId, mark.key]))
   return (
     <Chart
       responsive
@@ -63,7 +66,8 @@ export function TimeSeriesChart<Row extends object>({
       title={label}
       style={{ width: '100%', height }}
       margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-      barCategoryGap="12%"
+      barCategoryGap="16%"
+      barGap={2}
     >
       <CartesianGrid
         vertical={false}
@@ -79,7 +83,7 @@ export function TimeSeriesChart<Row extends object>({
         interval="preserveStartEnd"
       />
       <YAxis
-        width={48}
+        width="auto"
         tick={tick}
         tickLine={false}
         axisLine={false}
@@ -88,9 +92,7 @@ export function TimeSeriesChart<Row extends object>({
       />
       <Tooltip
         cursor={
-          barsOnly
-            ? { fill: theme.cursor, stroke: 'none' }
-            : { stroke: theme.axis }
+          bars ? { fill: theme.cursor, stroke: 'none' } : { stroke: theme.axis }
         }
         isAnimationActive={false}
         offset={12}
@@ -102,16 +104,34 @@ export function TimeSeriesChart<Row extends object>({
         }}
       />
       {marks.map((mark) =>
-        mark.kind === 'bar' ? (
+        bars ? (
           <Bar
             key={mark.key}
             dataKey={mark.key}
             name={mark.label}
             stackId={mark.stackId}
             fill={mark.color}
-            maxBarSize={48}
+            maxBarSize={40}
             isAnimationActive={false}
-            radius={mark.key === lastBar ? [3, 3, 0, 0] : 0}
+            radius={
+              mark.stackId === undefined ||
+              lastOfStack.get(mark.stackId) === mark.key
+                ? [3, 3, 0, 0]
+                : 0
+            }
+          />
+        ) : mark.stackId === undefined ? (
+          <Line
+            key={mark.key}
+            dataKey={mark.key}
+            name={mark.label}
+            type="linear"
+            stroke={mark.color}
+            strokeWidth={2}
+            dot={{ r: 2, strokeWidth: 0, fill: mark.color }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
+            connectNulls
+            isAnimationActive={false}
           />
         ) : (
           <Area
@@ -119,13 +139,13 @@ export function TimeSeriesChart<Row extends object>({
             dataKey={mark.key}
             name={mark.label}
             stackId={mark.stackId}
-            type="monotone"
+            type="linear"
             stroke={mark.color}
             strokeWidth={2}
             fill={mark.color}
-            fillOpacity={0.14}
-            isAnimationActive={false}
+            fillOpacity={0.16}
             activeDot={{ r: 4, strokeWidth: 0 }}
+            isAnimationActive={false}
           />
         ),
       )}

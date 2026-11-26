@@ -15,8 +15,8 @@ import { EndpointCard } from './endpoint-card'
 import { ErrorBreakdown } from './error-breakdown'
 import { KpiRow } from './kpi-row'
 import { RecentFailures } from './recent-failures'
-import { RequestsChart } from './requests-chart'
 import { TopKeys, TopModels } from './top-lists'
+import { UsageCharts } from './usage-charts'
 
 interface OverviewPanelProps {
   catalog: GatewayCatalog
@@ -73,7 +73,9 @@ export function OverviewPanel({
         />
       </div>
       <KpiRow overview={overview} catalog={catalog} />
-      <RequestsChart overview={overview} />
+      <UsageCharts overview={overview}>
+        <ErrorBreakdown overview={overview} />
+      </UsageCharts>
       <div className="grid gap-space-md lg:grid-cols-2">
         <TopModels overview={overview} onViewAll={() => onNavigate('models')} />
         <TopKeys
@@ -82,17 +84,12 @@ export function OverviewPanel({
           onViewAll={() => onNavigate('keys')}
         />
       </div>
-      <div className="grid gap-space-md lg:grid-cols-3">
-        <ErrorBreakdown overview={overview} />
-        <div className="lg:col-span-2">
-          <RecentFailures
-            overview={overview}
-            onViewLogs={() =>
-              onNavigate('logs', { outcome: 'error', range: String(days) })
-            }
-          />
-        </div>
-      </div>
+      <RecentFailures
+        overview={overview}
+        onViewLogs={() =>
+          onNavigate('logs', { outcome: 'error', range: String(days) })
+        }
+      />
     </div>
   )
 }

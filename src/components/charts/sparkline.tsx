@@ -1,9 +1,12 @@
-import { Area, AreaChart, Tooltip, YAxis } from 'recharts'
+import { Bar, BarChart, Tooltip, YAxis } from 'recharts'
+import { useChartTheme } from './chart-theme'
 
 /**
- * A series as a small area with no axes, for the trend under a headline
- * number. It reports the point under the pointer so the caller can read that
- * moment out next to the number; nothing is drawn for a flat-zero series.
+ * A series as a row of small bars with no axes, for the trend under a
+ * headline number. Bars, not a smoothed line: a line through two busy days in
+ * a quiet week draws a hill that never happened. It reports the bucket under
+ * the pointer so the caller can read that moment out next to the number;
+ * nothing is drawn for a flat-zero series.
  */
 export function Sparkline({
   values,
@@ -16,16 +19,18 @@ export function Sparkline({
   onActive?: (index: number | null) => void
   height?: number
 }) {
+  const theme = useChartTheme()
   if (values.length < 2 || !values.some((value) => value > 0))
     return <div aria-hidden="true" style={{ height }} />
   return (
-    <div aria-hidden="true">
-      <AreaChart
+    <div aria-hidden="true" className="border-b border-line-subtle">
+      <BarChart
         responsive
         accessibilityLayer={false}
         data={values.map((value) => ({ value }))}
         style={{ width: '100%', height }}
-        margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+        margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+        barCategoryGap="18%"
         onMouseMove={(state) => {
           const index = Number(state.activeTooltipIndex)
           onActive?.(
@@ -35,23 +40,20 @@ export function Sparkline({
         onMouseLeave={() => onActive?.(null)}
       >
         <YAxis hide domain={[0, 'dataMax']} />
-        {/* No tooltip box: the caller shows the value; this only draws the marker line. */}
+        {/* No tooltip box: the caller shows the value; this only highlights the bucket. */}
         <Tooltip
           content={() => null}
-          cursor={{ stroke: color, strokeWidth: 1 }}
+          cursor={{ fill: theme.cursor, stroke: 'none' }}
           isAnimationActive={false}
         />
-        <Area
+        <Bar
           dataKey="value"
-          type="monotone"
-          stroke={color}
-          strokeWidth={1.5}
           fill={color}
-          fillOpacity={0.12}
+          radius={[2, 2, 0, 0]}
+          minPointSize={1}
           isAnimationActive={false}
-          activeDot={{ r: 3, strokeWidth: 0 }}
         />
-      </AreaChart>
+      </BarChart>
     </div>
   )
 }

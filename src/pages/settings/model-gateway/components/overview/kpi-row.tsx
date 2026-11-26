@@ -171,18 +171,43 @@ export function KpiRow({
         }
       />
       <KpiCard
-        title={t(`${PREFIX}.overview.firstToken`)}
+        title={t(`${PREFIX}.overview.latency`)}
         icon={<Timer className={ICON} aria-hidden="true" />}
         value={
-          totals.first_token_p50_ms === null
+          totals.duration_p50_ms == null
             ? t(`${PREFIX}.common.empty`)
-            : formatDuration(totals.first_token_p50_ms)
+            : formatDuration(totals.duration_p50_ms)
         }
-        description={t(
-          totals.first_token_p50_ms === null
-            ? `${PREFIX}.overview.firstTokenNone`
-            : `${PREFIX}.overview.firstTokenHint`,
-        )}
+        description={
+          [
+            totals.duration_p95_ms == null
+              ? null
+              : t(`${PREFIX}.overview.latencyP95`, {
+                  value: formatDuration(totals.duration_p95_ms),
+                }),
+            totals.first_token_p50_ms === null
+              ? null
+              : t(`${PREFIX}.overview.latencyFirstToken`, {
+                  value: formatDuration(totals.first_token_p50_ms),
+                }),
+          ]
+            .filter(Boolean)
+            .join(' · ') || t(`${PREFIX}.overview.latencyNone`)
+        }
+        trend={
+          overview.series.some((point) => point.latency?.p50_ms != null)
+            ? trend(
+                (point) => point.latency?.p50_ms ?? 0,
+                (value, point) =>
+                  at(
+                    point,
+                    point.latency?.p50_ms == null
+                      ? t(`${PREFIX}.common.empty`)
+                      : formatDuration(value),
+                  ),
+              )
+            : undefined
+        }
       />
       <KpiCard
         title={t(`${PREFIX}.overview.health`)}

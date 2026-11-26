@@ -317,6 +317,9 @@ export interface GatewayOverviewTotals {
   spend?: number
   /** Median first-token latency of streamed calls; `null` when none. */
   first_token_p50_ms: number | null
+  /** Median and p95 duration of answered calls; `null` when none, absent on older servers. */
+  duration_p50_ms?: number | null
+  duration_p95_ms?: number | null
 }
 
 export interface GatewayOverviewBucket {
@@ -325,7 +328,20 @@ export interface GatewayOverviewBucket {
   errors: number
   /** Tokens of the calls with known usage; absent on older servers. */
   total_tokens?: number
+  prompt_tokens?: number
+  completion_tokens?: number
   spend?: number
+  /** The bucket by model, keyed like `series_models`; absent on older servers. */
+  models?: Record<
+    string,
+    { requests: number; total_tokens: number; spend: number }
+  >
+  /** How long answered calls of the bucket took; `null` when it has none. */
+  latency?: {
+    p50_ms: number | null
+    p95_ms: number | null
+    first_token_p50_ms: number | null
+  } | null
 }
 
 export interface GatewayOverview {
@@ -344,6 +360,12 @@ export interface GatewayOverview {
   }>
   bucket: 'hour' | 'day'
   series: GatewayOverviewBucket[]
+  /** The models each bucket is split by, busiest first; a `null` name is every other model together. */
+  series_models?: Array<{
+    model_id: string
+    name: string | null
+    provider: string | null
+  }>
   top_models: Array<{
     model_id: string
     name: string
