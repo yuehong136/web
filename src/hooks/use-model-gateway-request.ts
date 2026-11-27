@@ -12,6 +12,7 @@ import {
   type GatewayCatalog,
   type GatewayCatalogModel,
   type GatewayCatalogModelUpdate,
+  type GatewayImportBatch,
   type GatewayKeyCreateInput,
   type GatewayKeyUpdateInput,
   type GatewayLogQuery,
@@ -169,6 +170,25 @@ function useKeysChanged() {
     void client.invalidateQueries({ queryKey: modelGatewayKeys.keys() })
     refreshOverview(client)
   }
+}
+
+export const useImportGatewayKeys = () => {
+  const changed = useKeysChanged()
+  return useMutation({
+    meta: local,
+    gcTime: 0,
+    retry: false,
+    mutationFn: ({
+      mode,
+      batch,
+    }: {
+      mode: 'preview' | 'apply'
+      batch: GatewayImportBatch
+    }) => modelGatewayAPI.importKeys(mode, batch),
+    onSuccess: (report) => {
+      if (report.applied) changed()
+    },
+  })
 }
 
 /**

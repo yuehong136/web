@@ -292,6 +292,45 @@ export default {
       integrations: 'Integrations',
     },
     modelGateway: {
+      keyImport: {
+        title: 'Import existing keys',
+        description:
+          'Select a JSON manifest to preview the batch before importing. Supply the full existing key or its SHA-256 digest. Your browser hashes keys locally.',
+        template: 'Download JSON template',
+        file: 'Manifest file (up to 2 MiB)',
+        preview: 'Preview import',
+        apply: 'Confirm import',
+        never: 'No expiry',
+        all: 'All models (including future models)',
+        scope: '{{models}} specific models, {{connections}} entire connections',
+        row: 'Row {{row}}',
+        review: 'Reviewed {{count}} entries.',
+        done: 'Finished processing {{count}} entries.',
+        blocked:
+          'The batch has conflicts. No entries were written. Correct the file and select it again.',
+        would_import: 'Ready to import',
+        already_imported: 'Already imported · skipped',
+        imported: 'Imported',
+        fileSize: 'The manifest exceeds 2 MiB. Split the file.',
+        invalid:
+          'Invalid format or field value. Check the manifest against the template.',
+        secure: 'Open this page over HTTPS or localhost to hash keys locally.',
+        tenant: 'The target tenant differs from the signed-in account.',
+        permission: 'Sign in as a platform administrator for this tenant.',
+        unavailable: 'The current backend does not provide key import.',
+        concurrent: 'Data changed during the import. Preview again.',
+        failure:
+          'Import status could not be confirmed. Preview this manifest again.',
+        reasons: {
+          name_in_use: 'Name already in use',
+          duplicate_in_manifest:
+            'Duplicate name, source ID or credential in this file',
+          unknown_tenant: 'Unknown tenant',
+          source_record_changed: 'Source record changed',
+          credential_already_registered: 'Credential already registered',
+          unresolved_source_policy: 'Unmapped source policy',
+        },
+      },
       loading: 'Loading the model gateway…',
       loadFailed: 'Could not load the model gateway',
       tabsLabel: 'Model gateway sections',

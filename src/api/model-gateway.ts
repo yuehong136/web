@@ -384,7 +384,51 @@ export interface GatewayOverview {
   recent_errors: GatewayLog[]
 }
 
+export interface GatewayImportRow {
+  source_id: string
+  name: string
+  action?: 'would_import' | 'imported' | 'already_imported'
+  error?: string
+  unresolved?: string[]
+  current_status?: GatewayKeyStatus
+  requested_policy: {
+    status: GatewayKeyStatus
+    expires_at: string | null
+    allow_all_models: boolean
+    allowed_instance_ids: string[]
+    allowed_model_ids: string[]
+  }
+}
+
+export interface GatewayImportReport {
+  applied: boolean
+  results: GatewayImportRow[]
+}
+
+export interface GatewayImportBatch {
+  source: string
+  keys: Array<
+    GatewayKeyCreateInput & {
+      tenant_id: string
+      source_id: string
+      sha256: string
+      alternate_sha256?: string[]
+      allow_raw_authorization?: boolean
+      tags?: Record<string, string> | null
+      status: GatewayKeyStatus
+      unresolved: string[]
+    }
+  >
+}
+
 export const modelGatewayAPI = {
+  importKeys(
+    mode: 'preview' | 'apply',
+    batch: GatewayImportBatch,
+  ): Promise<GatewayImportReport> {
+    return apiClient.post(path(`keys/import/${mode}`), batch, rest)
+  },
+
   getCatalog(signal?: AbortSignal): Promise<GatewayCatalog> {
     return apiClient.get(path('catalog'), { ...rest, signal })
   },

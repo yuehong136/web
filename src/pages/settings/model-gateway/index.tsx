@@ -13,6 +13,8 @@ import {
 } from '@/components/patterns'
 import { SettingsTemplate } from '@/components/page-templates/settings-template'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth'
+import { ImportKeysDialog } from './components/keys/import-keys-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   useFetchGatewayCatalog,
@@ -59,6 +61,10 @@ export const ModelGatewayPage = () => {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const tab = parseTab(params.get('tab'))
+  const adminId = useAuthStore((state) =>
+    state.user?.is_superuser ? state.user.id : null,
+  )
+  const [importOpen, setImportOpen] = useState(false)
   const catalogQuery = useFetchGatewayCatalog()
   const keysQuery = useFetchGatewayKeys()
   const [form, setForm] = useState<KeyFormRequest | null>(null)
@@ -167,7 +173,20 @@ export const ModelGatewayPage = () => {
       <Inspector {...inspector}>
         <SettingsTemplate
           width="wide"
-          actions={createButton}
+          actions={
+            <>
+              {ready && tab === 'keys' && adminId ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setImportOpen(true)}
+                >
+                  {t(`${PREFIX}.keyImport.title`)}
+                </Button>
+              ) : null}
+              {createButton}
+            </>
+          }
           tabs={
             ready ? (
               <TabsList
@@ -220,6 +239,13 @@ export const ModelGatewayPage = () => {
           )}
         </SettingsTemplate>
       </Inspector>
+      {ready && tab === 'keys' && adminId && importOpen ? (
+        <ImportKeysDialog
+          key={adminId}
+          tenantId={adminId}
+          onClose={() => setImportOpen(false)}
+        />
+      ) : null}
       {form && catalog ? (
         <KeyFormSheet
           request={form}

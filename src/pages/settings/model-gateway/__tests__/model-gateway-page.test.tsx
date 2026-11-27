@@ -15,6 +15,8 @@ import type {
 import { createQueryClient } from '@/lib/query-client'
 import { setProductLanguage } from '@/locales/i18n'
 import { ModelGatewayPage } from '@/pages/settings/model-gateway'
+import { useAuthStore } from '@/stores/auth'
+import { createHash, webcrypto } from 'node:crypto'
 
 const modelId = (value: number) => value.toString(16).padStart(32, '0')
 
@@ -26,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
   listKeys: vi.fn(),
   createKey: vi.fn(),
+  importKeys: vi.fn(),
   updateKey: vi.fn(),
   revokeKey: vi.fn(),
   rotateKey: vi.fn(),
@@ -45,6 +48,7 @@ vi.mock('@/api/model-gateway', async (original) => ({
     getOverview: mocks.getOverview,
     listKeys: mocks.listKeys,
     createKey: mocks.createKey,
+    importKeys: mocks.importKeys,
     updateKey: mocks.updateKey,
     revokeKey: mocks.revokeKey,
     rotateKey: mocks.rotateKey,
@@ -297,8 +301,110 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await act(async () => root.unmount())
+  useAuthStore.setState({ user: null })
   container.remove()
   vi.unstubAllGlobals()
+})
+
+it('only offers import to an administrator, previews digests and applies the reviewed file', async () => {
+  await renderPage('/settings/model-gateway?tab=keys')
+  await waitFor(() => pageText().includes('support-bot'))
+  expect(button('Import existing keys')).toBeUndefined()
+  await act(async () =>
+    useAuthStore.setState({
+      user: {
+        id: 'admin',
+        email: '',
+        username: 'admin',
+        tenant_id: 'admin',
+        is_active: true,
+        created_at: '',
+        updated_at: '',
+        is_superuser: true,
+      },
+    }),
+  )
+  await click(await waitFor(() => button('Import existing keys')))
+  vi.stubGlobal('crypto', webcrypto)
+  const fileInput =
+    document.querySelector<HTMLInputElement>('input[type=file]')!
+  const key = 'sk-' + 'a'.repeat(40)
+  const fields = {
+    name: 'team',
+    status: 'disabled',
+    expires_at: null,
+    source_id: '7',
+    unresolved: [],
+  }
+  const selectFile = async (entry: Record<string, unknown>) => {
+    const value = JSON.stringify({ source: 'previous', keys: [entry] })
+    const file = Object.assign(new File([value], 'manifest.json'), {
+      text: async () => value,
+    })
+    Object.defineProperty(fileInput, 'files', {
+      configurable: true,
+      value: [file],
+    })
+    await act(async () => {
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  }
+  const row = {
+    source_id: '7',
+    name: 'team',
+    requested_policy: {
+      status: 'disabled',
+      expires_at: null,
+      allowed_model_ids: [],
+      allowed_instance_ids: [],
+    },
+  }
+  await selectFile({ ...fields, key })
+  mocks.importKeys.mockResolvedValueOnce({
+    applied: false,
+    results: [{ ...row, error: 'name_in_use' }],
+  })
+  await click(button('Preview import')!)
+  await waitFor(() => pageText().includes('Name already in use'))
+  expect(button('Confirm import')).toBeUndefined()
+  const expected = {
+    source: 'previous',
+    keys: [
+      {
+        ...fields,
+        tenant_id: 'admin',
+        sha256: createHash('sha256').update(key).digest('hex'),
+      },
+    ],
+  }
+  expect(mocks.importKeys).toHaveBeenLastCalledWith('preview', expected)
+  await selectFile({ ...fields, key })
+  mocks.importKeys.mockResolvedValueOnce({
+    applied: false,
+    results: [{ ...row, action: 'would_import' }],
+  })
+  await click(button('Preview import')!)
+  await waitFor(() => button('Confirm import'))
+  await selectFile({ ...fields, key, tenant_id: 'other' })
+  expect(button('Confirm import')).toBeUndefined()
+  await click(button('Preview import')!)
+  await waitFor(() => pageText().includes('target tenant differs'))
+  expect(mocks.importKeys).toHaveBeenCalledTimes(2)
+  await selectFile({ ...fields, key })
+  mocks.importKeys.mockResolvedValueOnce({
+    applied: false,
+    results: [{ ...row, action: 'would_import' }],
+  })
+  await click(button('Preview import')!)
+  mocks.importKeys.mockResolvedValueOnce({
+    applied: true,
+    results: [{ ...row, action: 'imported' }],
+  })
+  await click(await waitFor(() => button('Confirm import')))
+  await waitFor(() => pageText().includes('Finished processing'))
+  expect(mocks.importKeys).toHaveBeenLastCalledWith('apply', expected)
+  expect(mocks.listKeys.mock.calls.length).toBeGreaterThan(1)
+  expect(pageText()).not.toContain(key)
 })
 
 it('says the gateway is not enabled when its routes do not exist', async () => {

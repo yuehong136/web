@@ -203,6 +203,7 @@ export interface AuthResponse {
 
 export interface UserInfo {
   id: string
+  is_superuser?: boolean | null
   email: string
   username: string
   nickname?: string
